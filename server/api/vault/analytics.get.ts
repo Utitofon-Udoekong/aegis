@@ -68,17 +68,14 @@ export default defineEventHandler(async (event) => {
       }).filter(Boolean)
     ).size
 
-    // 4. Calculate total rewards - sum of all yield from Withdraw events
-    
-    const withdrawEvent = {
+    const unwatch = watchContractEvent(wagmiAdapter.wagmiConfig, {
       address: vaultAddress as Address,
       abi: AIVaultABI,
-      functionName: 'Withdraw',
+      eventName: 'Withdraw',
       onLogs(logs) {
         console.log('New logs!', logs)
-      },
-    }
-    const unwatch = watchContractEvent(wagmiAdapter.wagmiConfig, withdrawEvent)
+      }
+    })
 
     // Sum all yields from Withdraw events
     const totalRewards = withdrawLogs.reduce((sum: bigint, log) => {
