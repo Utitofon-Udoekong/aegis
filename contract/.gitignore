@@ -1,0 +1,7 @@
+node_modules
+pnpm-lock.yaml
+artifacts
+cache
+deployments
+ignition/deployments
+ignition/ignition.log
