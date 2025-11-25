@@ -24,10 +24,15 @@
 
 <script setup lang="ts">
 import { useWalletStore } from '~~/stores/wallet'
-
-const { open, address, isConnected } = useWeb3()
+import { useAppKitAccount } from "@reown/appkit/vue";
+import { useAppKit } from '@reown/appkit/vue';
+import { useDisconnect } from '@reown/appkit/vue';
+const { open } = useAppKit();
+const accountData = useAppKitAccount();
+const isConnected = computed(() => accountData.value?.isConnected)
+const address = computed(() => accountData.value?.address)
 const walletStore = useWalletStore()
-
+const { disconnect } = useDisconnect();
 const isConnecting = computed(() => walletStore.isConnecting)
 
 // Check both isConnected and address to determine connection state
@@ -43,7 +48,7 @@ const truncatedAddress = computed(() => {
 const handleConnect = async () => {
   walletStore.setConnecting(true)
   try {
-    open({ view: 'Connect' })
+    await open({ view: 'Connect' , namespace: 'eip155'})
   } catch (error) {
     console.error('Failed to connect wallet:', error)
   } finally {
@@ -53,7 +58,7 @@ const handleConnect = async () => {
 
 const handleDisconnect = async () => {
   try {
-    open({ view: 'Account' })
+    await disconnect({namespace: 'eip155'})
     // User can disconnect from the account modal
   } catch (error) {
     console.error('Failed to open account modal:', error)

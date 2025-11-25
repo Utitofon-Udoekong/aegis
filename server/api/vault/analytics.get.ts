@@ -1,41 +1,9 @@
-import { JsonRpcProvider, Contract, formatEther } from 'ethers'
+import { AIVaultABI } from '~~/config/abi/ai-vault'
+import { wagmiAdapter } from '~~/config/appkit'
+import { readContract, watchContractEvent } from '@wagmi/core'
+import { Address, formatUnits } from 'viem'
+import { watchEvent } from 'viem/actions'
 
-// AIVault ABI - only the functions and events we need
-const AIVaultABI = [
-  {
-    name: 'totalDeposits',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'APY_BPS',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-  {
-    name: 'Deposit',
-    type: 'event',
-    inputs: [
-      { indexed: true, name: 'user', type: 'address' },
-      { indexed: false, name: 'amount', type: 'uint256' },
-      { indexed: false, name: 'timestamp', type: 'uint256' },
-    ],
-  },
-  {
-    name: 'Withdraw',
-    type: 'event',
-    inputs: [
-      { indexed: true, name: 'user', type: 'address' },
-      { indexed: false, name: 'amount', type: 'uint256' },
-      { indexed: false, name: 'yield', type: 'uint256' },
-      { indexed: false, name: 'timestamp', type: 'uint256' },
-    ],
-  },
-] as const
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -62,24 +30,31 @@ export default defineEventHandler(async (event) => {
     })
   }
   
-  // Create a read-only provider for server-side blockchain queries
-  // This uses the same RPC URL as configured for the client-side wallet connections
-  const provider = new JsonRpcProvider(rpcUrl)
-  const contract = new Contract(vaultAddress, AIVaultABI, provider)
-
   try {
     // 1. Get TVL (Total Value Locked) - from totalDeposits contract state
-    const totalDeposits = await contract.totalDeposits()
-    const tvl = formatEther(totalDeposits)
+    const totalDeposits = await readContract(wagmiAdapter.wagmiConfig, {
+      address: vaultAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'totalDeposits',
+    })
+    const tvl = formatUnits(totalDeposits as bigint, 18)
 
     // 2. Get APY - from APY_BPS constant (500 = 5%)
-    const apyBps = await contract.APY_BPS()
+    const apyBps = await readContract(wagmiAdapter.wagmiConfig, {
+      address: vaultAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'APY_BPS',
+    })
     const apy = Number(apyBps) / 100 // Convert basis points to percentage
 
     // 3. Get unique users - count distinct addresses from Deposit events
     // Get all Deposit events from contract deployment
-    const depositFilter = contract.filters.Deposit()
-    const depositLogs = await contract.queryFilter(depositFilter)
+    const depositEvent = {
+      address: vaultAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'Deposit',
+    }
+    const depositLogs = await readContract(wagmiAdapter.wagmiConfig, depositEvent)
 
     // Count unique users from Deposit events
     const uniqueUsers = new Set(
@@ -94,8 +69,16 @@ export default defineEventHandler(async (event) => {
     ).size
 
     // 4. Calculate total rewards - sum of all yield from Withdraw events
-    const withdrawFilter = contract.filters.Withdraw()
-    const withdrawLogs = await contract.queryFilter(withdrawFilter)
+    
+    const withdrawEvent = {
+      address: vaultAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'Withdraw',
+      onLogs(logs) {
+        console.log('New logs!', logs)
+      },
+    }
+    const unwatch = watchContractEvent(wagmiAdapter.wagmiConfig, withdrawEvent)
 
     // Sum all yields from Withdraw events
     const totalRewards = withdrawLogs.reduce((sum: bigint, log) => {

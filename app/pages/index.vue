@@ -132,8 +132,13 @@
 </template>
 
 <script setup lang="ts">
+import { useAppKitAccount } from "@reown/appkit/vue";
+import { useAppKit } from '@reown/appkit/vue';
+const { open } = useAppKit();
 const { data: analytics, error } = await useFetch('/api/vault/analytics')
-const { isConnected, open } = useWeb3()
+const accountData = useAppKitAccount();
+const isConnected = computed(() => accountData.value?.isConnected)
+const address = computed(() => accountData.value?.address)
 const router = useRouter()
 
 // Provide fallback data if analytics fails to load
@@ -144,11 +149,11 @@ const analyticsData = computed(() => analytics.value || {
   totalRewards: '0',
 })
 
-const handleGetStarted = () => {
+const handleGetStarted = async () => {
   if (isConnected?.value) {
     router.push('/vault')
-  } else if (open) {
-    open({ view: 'Connect' })
-  }
+  } else {
+    await open({ view: 'Connect' , namespace: 'eip155'})
+  } 
 }
 </script>

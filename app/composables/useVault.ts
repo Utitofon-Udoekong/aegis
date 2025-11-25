@@ -1,11 +1,11 @@
 import { useVaultStore } from '~~/stores/vault'
 import { AIVaultABI } from '~~/config/abi/ai-vault'
 import { VaultBTCABI } from '~~/config/abi/vault-btc'
-import { wagmiAdapter } from '~~/config/appkit'
 import { formatUnits } from 'viem'
 import { useAppKitAccount } from "@reown/appkit/vue";
+import { wagmiAdapter } from '~~/config/appkit';
+import { readContract, writeContract, simulateContract, waitForTransactionReceipt } from '@wagmi/core'
 import type { Address } from 'viem'
-import { readContract, writeContract, simulateContract, waitForTransactionReceipt } from 'viem/actions'
 
 export const useVault = () => {
   const config = useRuntimeConfig()
@@ -68,7 +68,7 @@ export const useVault = () => {
       args: [amount],
     })
     const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
-    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, hash)
+    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
   
@@ -80,7 +80,7 @@ export const useVault = () => {
       args: [amount],
     })
     const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
-    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, hash)
+    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
   
@@ -121,7 +121,7 @@ export const useVault = () => {
       args: [accountData.value?.address as Address, amount],
     })
     const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
-    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, hash)
+    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
   
@@ -144,7 +144,10 @@ export const useVault = () => {
       functionName: 'getCooldownRemaining',
       args: [userAddress],
     })
-    
+    console.log("remainingDaily", remainingDaily)
+    console.log("remainingLifetime", remainingLifetime)
+    console.log("cooldownRemaining", cooldownRemaining)
+    console.log("canMint", Number(cooldownRemaining) === 0 && Number(remainingDaily) > 0 && Number(remainingLifetime) > 0)
     return {
       remainingDaily: formatUnits(remainingDaily as bigint, 18),
       remainingLifetime: formatUnits(remainingLifetime as bigint, 18),

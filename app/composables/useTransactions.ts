@@ -1,10 +1,9 @@
 
 import type { Transaction } from '~~/shared/types/vault'
-import {VaultBTCABI} from '~~/config/abi/vault-btc'
 import {AIVaultABI} from '~~/config/abi/ai-vault'
 import { readContract } from '@wagmi/core'
 import { wagmiAdapter } from '~~/config/appkit'
-import { formatUnits } from 'viem'
+import { formatUnits, type Address } from 'viem'
 
 export const useTransactions = () => {
   const config = useRuntimeConfig()
@@ -12,13 +11,13 @@ export const useTransactions = () => {
   const fetchTransactions = async (userAddress: string): Promise<Transaction[]> => {
     try {
       const depositEvents: any = await readContract(wagmiAdapter.wagmiConfig, {
-        address: config.public.vaultAddress as `0x${string}`,
+        address: config.public.vaultAddress as Address,
         abi: AIVaultABI,
         functionName: 'Deposit',
         args: [userAddress],
       })
       const withdrawEvents: any = await readContract(wagmiAdapter.wagmiConfig, {
-        address: config.public.vaultAddress as `0x${string}`,
+        address: config.public.vaultAddress as Address,
         abi: AIVaultABI,
         functionName: 'Withdraw',
         args: [userAddress],
