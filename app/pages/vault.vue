@@ -36,17 +36,17 @@
       <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
       <!-- Stats -->
       <VaultStats
-        :balance="vaultStore.balance"
-        :apy="vaultStore.apy"
-        :rewards="vaultStore.userRewards"
+        :balance="balance"
+        :apy="apy"
+        :rewards="userRewards"
       />
 
         <!-- Deposit/Withdraw Forms -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <VaultDepositForm @deposited="handleDeposit" />
           <VaultWithdrawForm
-            :vault-balance="vaultStore.balance"
-            :rewards="vaultStore.userRewards"
+            :vault-balance="balance"
+            :rewards="userRewards"
             @withdrawn="handleWithdraw"
           />
       </div>
@@ -54,10 +54,10 @@
       <!-- Charts and History -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <VaultPortfolioChart
-          :transactions="vaultStore.transactions"
-          :balance="vaultStore.balance"
+          :transactions="transactions"
+          :balance="balance"
         />
-          <VaultTransactionHistory :transactions="vaultStore.transactions" />
+          <VaultTransactionHistory :transactions="transactions" />
       </div>
     </main>
     </div>
@@ -65,49 +65,81 @@
 </template>
 
 <script setup lang="ts">
-import { useVaultStore } from '~~/stores/vault'
+import { useAppKitAccount } from "@reown/appkit/vue";
+import type { Transaction } from '~~/shared/types/vault'
 
-const web3 = useWeb3()
-const vaultStore = useVaultStore()
+const accountData = useAppKitAccount();
+const isConnected = computed(() => accountData.value?.isConnected)
+const address = computed(() => accountData.value?.address)
 
-const address = computed(() => {
-  const addr = web3.address
-  if (addr && typeof addr === 'object' && 'value' in addr) {
-    return addr.value
+// Use composables directly
+const { getBalance, calculateYield, getTotalDeposits } = useVault()
+const { fetchTransactions } = useTransactions()
+
+// Reactive state
+const balance = ref('0')
+const userRewards = ref('0')
+const apy = ref(5.0)
+const transactions = ref<Transaction[]>([])
+const isLoading = ref(false)
+
+// Formatted values
+const formattedBalance = computed(() => parseFloat(balance.value || '0').toFixed(4))
+const formattedRewards = computed(() => parseFloat(userRewards.value || '0').toFixed(4))
+
+// Fetch all vault data
+const fetchVaultData = async (userAddress: string) => {
+  if (!userAddress) {
+    balance.value = '0'
+    userRewards.value = '0'
+    transactions.value = []
+    return
   }
-  return typeof addr === 'string' ? addr : undefined
-})
 
-const isConnected = computed(() => {
-  const connected = web3.isConnected
-  if (connected && typeof connected === 'object' && 'value' in connected) {
-    return connected.value
+  isLoading.value = true
+  try {
+    const [balanceResult, rewardsResult, totalDepositsResult, transactionsResult] = await Promise.all([
+      getBalance(userAddress).catch(() => '0'),
+      calculateYield(userAddress).catch(() => '0'),
+      getTotalDeposits().catch(() => '0'),
+      fetchTransactions(userAddress).catch(() => [] as Transaction[]),
+    ])
+
+    balance.value = balanceResult
+    userRewards.value = rewardsResult
+    transactions.value = transactionsResult
+    
+    // APY is constant from contract, but we can fetch it if needed
+    // For now, keeping it at 5.0% as per contract constant
+  } catch (error) {
+    console.error('Error fetching vault data:', error)
+  } finally {
+    isLoading.value = false
   }
-  return connected === true
-})
+}
 
 const handleDeposit = async () => {
   const addr = address.value
   if (addr) {
-    await vaultStore.fetchBalance(addr)
-    await vaultStore.fetchTransactions(addr)
+    await fetchVaultData(addr)
   }
 }
 
 const handleWithdraw = async () => {
   const addr = address.value
   if (addr) {
-    await vaultStore.fetchBalance(addr)
-    await vaultStore.fetchTransactions(addr)
+    await fetchVaultData(addr)
   }
 }
 
+// Watch for address/connection changes
 watch([address, isConnected], async ([newAddress, connected]) => {
   if (newAddress && connected) {
-    await vaultStore.fetchBalance(newAddress)
-    await vaultStore.fetchTransactions(newAddress)
+    await fetchVaultData(newAddress)
   } else {
-    vaultStore.reset()
+    balance.value = '0'
+    userRewards.value = '0'
+    transactions.value = []
   }
 }, { immediate: true })
 </script>

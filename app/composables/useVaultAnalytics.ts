@@ -68,24 +68,24 @@ export function useVaultAnalytics() {
 
       // Fetch contract state directly for TVL and APY
       try {
-        const totalDeposits = await readContract(wagmiAdapter.wagmiConfig, {
+      const totalDeposits = await readContract(wagmiAdapter.wagmiConfig, {
           address: address as Address,
-          abi: AIVaultABI,
-          functionName: 'totalDeposits',
-        })
-        analytics.value.tvl = formatUnits(totalDeposits as bigint, 18)
+        abi: AIVaultABI,
+        functionName: 'totalDeposits',
+      })
+      analytics.value.tvl = formatUnits(totalDeposits as bigint, 18)
       } catch (err) {
         console.error('Error fetching TVL:', err)
         // Keep existing value or default
       }
 
       try {
-        const apyBps = await readContract(wagmiAdapter.wagmiConfig, {
+      const apyBps = await readContract(wagmiAdapter.wagmiConfig, {
           address: address as Address,
-          abi: AIVaultABI,
-          functionName: 'APY_BPS',
-        })
-        analytics.value.apy = Number(apyBps) / 100 // Convert basis points to percentage
+        abi: AIVaultABI,
+        functionName: 'APY_BPS',
+      })
+      analytics.value.apy = Number(apyBps) / 100 // Convert basis points to percentage
       } catch (err) {
         console.error('Error fetching APY:', err)
         // Keep default 5.0%
@@ -111,12 +111,12 @@ export function useVaultAnalytics() {
     
     try {
       // Watch for Deposit events to update TVL and user count
-      const unwatchDeposit = watchContractEvent(wagmiAdapter.wagmiConfig, {
+    const unwatchDeposit = watchContractEvent(wagmiAdapter.wagmiConfig, {
         address: address as Address,
-        abi: AIVaultABI,
-        eventName: 'Deposit',
+      abi: AIVaultABI,
+      eventName: 'Deposit',
         onLogs: async (logs) => {
-          console.log('New Deposit logs!', logs)
+        console.log('New Deposit logs!', logs)
           
           // Update TVL by fetching latest totalDeposits
           try {
@@ -149,16 +149,16 @@ export function useVaultAnalytics() {
               console.error('Error extracting user from deposit event:', err)
             }
           })
-        }
-      })
+      }
+    })
 
       // Watch for Withdraw events to update rewards and TVL
-      const unwatchWithdraw = watchContractEvent(wagmiAdapter.wagmiConfig, {
+    const unwatchWithdraw = watchContractEvent(wagmiAdapter.wagmiConfig, {
         address: address as Address,
-        abi: AIVaultABI,
-        eventName: 'Withdraw',
+      abi: AIVaultABI,
+      eventName: 'Withdraw',
         onLogs: async (logs) => {
-          console.log('New Withdraw logs!', logs)
+        console.log('New Withdraw logs!', logs)
           
           // Update TVL by fetching latest totalDeposits
           try {
@@ -192,10 +192,10 @@ export function useVaultAnalytics() {
               console.error('Error decoding withdraw event:', err)
             }
           })
-        }
-      })
+      }
+    })
 
-      unwatchFunctions.push(unwatchDeposit, unwatchWithdraw)
+    unwatchFunctions.push(unwatchDeposit, unwatchWithdraw)
     } catch (err) {
       console.error('Error setting up event listeners:', err)
     }

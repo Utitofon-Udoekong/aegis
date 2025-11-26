@@ -21,10 +21,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-    ethereumRpcUrl: process.env.ETHEREUM_RPC_URL,
     subgraphApiKey: process.env.SUBGRAPH_API_KEY,
     public: {
-      vaultAddress: process.env.VAULT_CONTRACT_ADDRESS,
+      ethereumRpcUrl: process.env.ETHEREUM_RPC_URL,
+      vaultContractAddress: process.env.VAULT_CONTRACT_ADDRESS,
       vaultBtcAddress: process.env.VAULT_BTC_ADDRESS,
       reownProjectId: process.env.REOWN_PROJECT_ID,
     },

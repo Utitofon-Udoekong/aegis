@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const rpcUrl = config.ethereumRpcUrl as string
+  const rpcUrl = config.public.ethereumRpcUrl as string
   if (!rpcUrl?.trim()) {
     return {
       tvl: '0',

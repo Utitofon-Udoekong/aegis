@@ -45,13 +45,11 @@
 
 <script setup lang="ts">
 import { useAppKitAccount } from '@reown/appkit/vue';
-import { useVaultStore } from '~~/stores/vault'
 
 const accountData = useAppKitAccount();
 const isConnected = computed(() => accountData.value?.isConnected)
 const address = computed(() => accountData.value?.address)
 const { deposit, getVaultBTCBalance } = useVault()
-const vaultStore = useVaultStore()
 
 const amount = ref('')
 const loading = ref(false)

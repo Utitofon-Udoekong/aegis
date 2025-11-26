@@ -160,14 +160,12 @@
 </template>
 
 <script setup lang="ts">
-import { useVaultStore } from '~~/stores/vault'
 import { useAppKitAccount } from "@reown/appkit/vue";
 
 const accountData = useAppKitAccount();
 const isConnected = computed(() => accountData.value?.isConnected)
 const address = computed(() => accountData.value?.address)
 const { mintVaultBTC, getVaultBTCBalance, getFaucetInfo } = useVault()
-const vaultStore = useVaultStore()
 
 const presetAmounts = ['50', '100', '200', '500', '1000']
 const selectedAmount = ref('200')
@@ -251,7 +249,8 @@ const handleMint = async () => {
     return
   }
   
-  if (faucetInfo.value.cooldownRemaining > 0) {
+  // Use same threshold (0.1 seconds) as formatCooldown to determine if cooldown is active
+  if (faucetInfo.value.cooldownRemaining >= 0.1) {
     error.value = `Cooldown active. Please wait ${formatCooldown(faucetInfo.value.cooldownRemaining)}`
     return
   }
