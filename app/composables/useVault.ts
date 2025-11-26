@@ -37,6 +37,9 @@ export const useVault = () => {
     }
   }
   
+  // Maximum uint256 for unlimited approval
+  const MAX_UINT256 = 2n ** 256n - 1n
+  
   const approveVaultBTC = async (amount: string): Promise<any> => {
     const vaultBtcAddress = config.public.vaultBtcAddress as string
     const vaultContractAddress = config.public.vaultContractAddress as string
@@ -48,8 +51,13 @@ export const useVault = () => {
       throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
     }
 
-    // Convert human-readable amount to wei (18 decimals)
-    const amountInWei = parseUnits(amount, 18)
+    // Use MAX_UINT256 for unlimited approval to avoid repeated approvals
+    const approveAmount = MAX_UINT256
+    
+    console.log('Approving vault to spend tokens...')
+    console.log('Token address:', vaultBtcAddress)
+    console.log('Spender (vault):', vaultContractAddress)
+    console.log('Approve amount: unlimited (MAX_UINT256)')
 
     // Estimate gas and set limit with buffer
     let gasLimit = 2000000n // Default fallback (2M - higher to prevent drops)
@@ -60,7 +68,7 @@ export const useVault = () => {
         data: encodeFunctionData({
           abi: VaultBTCABI,
           functionName: 'approve',
-          args: [vaultContractAddress as Address, amountInWei],
+          args: [vaultContractAddress as Address, approveAmount],
         }),
       })
       console.log('Gas estimate for approve:', estimatedGas.toString())
@@ -78,9 +86,10 @@ export const useVault = () => {
       address: vaultBtcAddress as Address,
       abi: VaultBTCABI,
       functionName: 'approve',
-      args: [vaultContractAddress as Address, amountInWei],
+      args: [vaultContractAddress as Address, approveAmount],
       gas: gasLimit,
     })
+    console.log('Approve transaction hash:', hash)
     return hash
   }
   
@@ -118,40 +127,82 @@ export const useVault = () => {
     // Convert amount to wei (18 decimals)
     const amountInWei = parseUnits(amount, 18)
     
-    // Check if vault is paused
+    // Diagnostic: Check if vault is paused
     try {
       const isPaused = await readContract(wagmiAdapter.wagmiConfig, {
         address: vaultContractAddress as Address,
         abi: AIVaultABI,
         functionName: 'paused',
       })
+      console.log('Vault paused status:', isPaused)
       if (isPaused) {
         throw new Error('Vault is currently paused. Deposits are not available.')
       }
     } catch (error: any) {
-      // If paused() doesn't exist or fails, continue (might not be available in ABI)
       console.warn('Could not check paused status:', error.message)
+    }
+    
+    // Diagnostic: Check vaultBTC address in contract vs our config
+    const vaultBtcAddress = config.public.vaultBtcAddress as string
+    try {
+      const contractVaultBTC = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'vaultBTC',
+      })
+      console.log('VaultBTC address in contract:', contractVaultBTC)
+      console.log('VaultBTC address in config:', vaultBtcAddress)
+      console.log('Addresses match?', (contractVaultBTC as string).toLowerCase() === vaultBtcAddress.toLowerCase())
+      
+      if ((contractVaultBTC as string).toLowerCase() !== vaultBtcAddress.toLowerCase()) {
+        throw new Error(`Token address mismatch! Contract expects ${contractVaultBTC}, but config has ${vaultBtcAddress}`)
+      }
+    } catch (error: any) {
+      if (error.message?.includes('mismatch')) throw error
+      console.warn('Could not verify vaultBTC address:', error.message)
     }
     
     // Check balance first
     const walletBalance = await getVaultBTCBalance(addressValue)
     const walletBalanceWei = parseUnits(walletBalance, 18)
+    console.log('Wallet vaultBTC balance:', walletBalance)
+    console.log('Wallet balance in wei:', walletBalanceWei.toString())
+    console.log('Deposit amount in wei:', amountInWei.toString())
+    console.log('Balance sufficient?', walletBalanceWei >= amountInWei)
+    
     if (amountInWei > walletBalanceWei) {
       throw new Error(`Insufficient balance. You have ${walletBalance} vaultBTC, but trying to deposit ${amount} vaultBTC`)
     }
     
     // Check and approve if needed - check if allowance is sufficient for the amount
     const currentAllowance = await checkAllowance(addressValue)
+    console.log('Current allowance:', currentAllowance.toString())
+    console.log('Amount needed:', amountInWei.toString())
+    console.log('Allowance sufficient?', currentAllowance >= amountInWei)
+    
     if (currentAllowance < amountInWei) {
+      console.log('Insufficient allowance, requesting approval...')
       // Need to approve - wait for approval to complete
       const approveHash = await approveVaultBTC(amount)
-      await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: approveHash })
+      console.log('Waiting for approval transaction:', approveHash)
+      const approveReceipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: approveHash })
+      console.log('Approval receipt status:', approveReceipt.status)
+      
+      if (approveReceipt.status !== 'success') {
+        throw new Error('Approval transaction failed')
+      }
+      
+      // Wait a bit for state to update (RPC caching issue)
+      console.log('Waiting for RPC state to update...')
+      await new Promise(resolve => setTimeout(resolve, 3000))
       
       // Verify allowance was set correctly
       const newAllowance = await checkAllowance(addressValue)
+      console.log('New allowance after approval:', newAllowance.toString())
       if (newAllowance < amountInWei) {
-        throw new Error('Approval failed or insufficient. Please try again.')
+        throw new Error(`Approval failed or insufficient. Got ${newAllowance.toString()}, needed ${amountInWei.toString()}`)
       }
+      console.log('Approval confirmed, proceeding with deposit...')
     }
     
     // Then deposit
@@ -275,7 +326,7 @@ export const useVault = () => {
         address: vaultContractAddress as Address,
       abi: AIVaultABI,
       functionName: 'balances',
-      args: [userAddress],
+      args: [userAddress as Address],
     })
     return formatUnits(balance as bigint, 18)
     } catch {
@@ -296,7 +347,7 @@ export const useVault = () => {
         address: vaultContractAddress as Address,
       abi: AIVaultABI,
       functionName: 'calculateYield',
-      args: [userAddress],
+      args: [userAddress as Address],
     })
     return formatUnits(yieldAmount as bigint, 18)
     } catch {
@@ -321,6 +372,212 @@ export const useVault = () => {
     return formatUnits(totalDeposits as bigint, 18)
     } catch {
       return '0'
+    }
+  }
+  
+  /**
+   * Claim accrued yield without withdrawing principal
+   */
+  const claimYield = async () => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    const addressValue = accountData.value?.address
+    
+    if (!addressValue) throw new Error('No wallet address')
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
+    }
+    
+    // Estimate gas
+    let gasLimit = 5000000n
+    try {
+      const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
+        account: addressValue as Address,
+        to: vaultContractAddress as Address,
+        data: encodeFunctionData({
+          abi: AIVaultABI,
+          functionName: 'claimYield',
+          args: [],
+        }),
+      })
+      gasLimit = estimatedGas * 2n
+      if (gasLimit > 15000000n) gasLimit = 15000000n
+      if (gasLimit < 2000000n) gasLimit = 2000000n
+    } catch (error: any) {
+      console.warn('Gas estimation failed for claimYield, using default:', error.message)
+    }
+    
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
+      address: vaultContractAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'claimYield',
+      args: [],
+      gas: gasLimit,
+    })
+    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash })
+    return receipt.transactionHash
+  }
+  
+  /**
+   * Get detailed deposit info for a user
+   */
+  const getDepositInfo = async (userAddress: string) => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      return {
+        amount: '0',
+        depositTime: 0,
+        lastClaimTime: 0,
+        pendingYield: '0',
+      }
+    }
+    
+    try {
+      const result = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'getDepositInfo',
+        args: [userAddress as Address],
+      }) as [bigint, bigint, bigint, bigint]
+      
+      return {
+        amount: formatUnits(result[0], 18),
+        depositTime: Number(result[1]),
+        lastClaimTime: Number(result[2]),
+        pendingYield: formatUnits(result[3], 18),
+      }
+    } catch (error) {
+      console.error('Error fetching deposit info:', error)
+      return {
+        amount: '0',
+        depositTime: 0,
+        lastClaimTime: 0,
+        pendingYield: '0',
+      }
+    }
+  }
+  
+  /**
+   * Get yield reserves in the vault
+   */
+  const getYieldReserves = async (): Promise<string> => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      return '0'
+    }
+    
+    try {
+      const reserves = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'yieldReserves',
+      })
+      return formatUnits(reserves as bigint, 18)
+    } catch {
+      return '0'
+    }
+  }
+  
+  /**
+   * Fund yield reserves (typically done by owner/admin)
+   */
+  const fundYieldReserves = async (amount: string) => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    const vaultBtcAddress = config.public.vaultBtcAddress as string
+    const addressValue = accountData.value?.address
+    
+    if (!addressValue) throw new Error('No wallet address')
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
+    }
+    
+    const amountInWei = parseUnits(amount, 18)
+    
+    // First approve the vault to spend tokens
+    const currentAllowance = await checkAllowance(addressValue)
+    if (currentAllowance < amountInWei) {
+      const approveHash = await writeContract(wagmiAdapter.wagmiConfig, {
+        address: vaultBtcAddress as Address,
+        abi: VaultBTCABI,
+        functionName: 'approve',
+        args: [vaultContractAddress as Address, MAX_UINT256],
+      })
+      await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: approveHash })
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+    
+    // Estimate gas
+    let gasLimit = 5000000n
+    try {
+      const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
+        account: addressValue as Address,
+        to: vaultContractAddress as Address,
+        data: encodeFunctionData({
+          abi: AIVaultABI,
+          functionName: 'fundYieldReserves',
+          args: [amountInWei],
+        }),
+      })
+      gasLimit = estimatedGas * 2n
+      if (gasLimit > 15000000n) gasLimit = 15000000n
+      if (gasLimit < 2000000n) gasLimit = 2000000n
+    } catch (error: any) {
+      console.warn('Gas estimation failed for fundYieldReserves, using default:', error.message)
+    }
+    
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
+      address: vaultContractAddress as Address,
+      abi: AIVaultABI,
+      functionName: 'fundYieldReserves',
+      args: [amountInWei],
+      gas: gasLimit,
+    })
+    const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash })
+    return receipt.transactionHash
+  }
+  
+  /**
+   * Get minimum deposit time required for yield
+   */
+  const getMinDepositTime = async (): Promise<number> => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      return 86400 // Default 1 day in seconds
+    }
+    
+    try {
+      const minTime = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'MIN_DEPOSIT_TIME',
+      })
+      return Number(minTime)
+    } catch {
+      return 86400
+    }
+  }
+  
+  /**
+   * Get APY in basis points
+   */
+  const getAPY = async (): Promise<number> => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      return 500 // Default 5%
+    }
+    
+    try {
+      const apy = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'APY_BPS',
+      })
+      return Number(apy)
+    } catch {
+      return 500
     }
   }
   
@@ -442,5 +699,12 @@ export const useVault = () => {
     getTotalDeposits,
     mintVaultBTC,
     getFaucetInfo,
+    // New yield functions
+    claimYield,
+    getDepositInfo,
+    getYieldReserves,
+    fundYieldReserves,
+    getMinDepositTime,
+    getAPY,
   }
 }

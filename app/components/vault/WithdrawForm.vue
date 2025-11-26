@@ -23,10 +23,20 @@
         </template>
       </UiInput>
 
-      <div v-if="isConnected" class="text-sm text-slate-400">
+      <div v-if="isConnected" class="text-sm text-slate-400 space-y-1">
         <p>Vault Balance: {{ vaultBalance }} vaultBTC</p>
         <p v-if="parseFloat(rewards) > 0" class="text-green-400">
-          Estimated Yield: {{ rewards }} vaultBTC
+          Pending Yield: {{ rewards }} vaultBTC
+        </p>
+        <p v-if="estimatedYield > 0" class="text-emerald-300 text-xs">
+          Estimated yield with withdrawal: {{ estimatedYield.toFixed(6) }} vaultBTC
+        </p>
+      </div>
+
+      <div class="text-xs text-slate-500 bg-slate-800/50 p-3 rounded-lg">
+        <p class="flex items-center gap-1">
+          <Icon name="mdi:information" class="text-emerald-400" />
+          Withdrawals include proportional yield (if held 24h+)
         </p>
       </div>
 
@@ -65,6 +75,19 @@ const amount = ref('')
 const loading = ref(false)
 const error = ref('')
 
+// Calculate estimated yield based on withdrawal amount
+const estimatedYield = computed(() => {
+  if (!amount.value || parseFloat(amount.value) <= 0) return 0
+  if (parseFloat(props.vaultBalance) <= 0) return 0
+  
+  const withdrawAmount = parseFloat(amount.value)
+  const totalBalance = parseFloat(props.vaultBalance)
+  const totalYield = parseFloat(props.rewards)
+  
+  // Proportional yield
+  return (totalYield * withdrawAmount) / totalBalance
+})
+
 const setMax = () => {
   amount.value = props.vaultBalance
 }
@@ -85,8 +108,9 @@ const handleWithdraw = async () => {
 
   try {
     await withdraw(amount.value)
+    const withdrawnAmount = amount.value
     amount.value = ''
-    emit('withdrawn', amount.value)
+    emit('withdrawn', withdrawnAmount)
   } catch (err: any) {
     error.value = err.message || 'Failed to withdraw'
   } finally {
@@ -98,4 +122,3 @@ const emit = defineEmits<{
   withdrawn: [amount: string]
 }>()
 </script>
-

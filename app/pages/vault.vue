@@ -39,6 +39,10 @@
         :balance="balance"
         :apy="apy"
         :rewards="userRewards"
+        :deposit-time="depositTime"
+        :last-claim-time="lastClaimTime"
+        :yield-reserves="yieldReserves"
+        @yield-claimed="handleYieldClaimed"
       />
 
         <!-- Deposit/Withdraw Forms -->
@@ -73,7 +77,7 @@ const isConnected = computed(() => accountData.value?.isConnected)
 const address = computed(() => accountData.value?.address)
 
 // Use composables directly
-const { getBalance, calculateYield, getTotalDeposits } = useVault()
+const { getBalance, calculateYield, getTotalDeposits, getDepositInfo, getYieldReserves, getAPY } = useVault()
 const { fetchTransactions } = useTransactions()
 
 // Reactive state
@@ -82,6 +86,9 @@ const userRewards = ref('0')
 const apy = ref(5.0)
 const transactions = ref<Transaction[]>([])
 const isLoading = ref(false)
+const depositTime = ref(0)
+const lastClaimTime = ref(0)
+const yieldReserves = ref('0')
 
 // Formatted values
 const formattedBalance = computed(() => parseFloat(balance.value || '0').toFixed(4))
@@ -93,24 +100,27 @@ const fetchVaultData = async (userAddress: string) => {
     balance.value = '0'
     userRewards.value = '0'
     transactions.value = []
+    depositTime.value = 0
+    lastClaimTime.value = 0
     return
   }
 
   isLoading.value = true
   try {
-    const [balanceResult, rewardsResult, totalDepositsResult, transactionsResult] = await Promise.all([
-      getBalance(userAddress).catch(() => '0'),
-      calculateYield(userAddress).catch(() => '0'),
-      getTotalDeposits().catch(() => '0'),
+    const [depositInfo, reservesResult, apyResult, transactionsResult] = await Promise.all([
+      getDepositInfo(userAddress).catch(() => ({ amount: '0', depositTime: 0, lastClaimTime: 0, pendingYield: '0' })),
+      getYieldReserves().catch(() => '0'),
+      getAPY().catch(() => 500),
       fetchTransactions(userAddress).catch(() => [] as Transaction[]),
     ])
 
-    balance.value = balanceResult
-    userRewards.value = rewardsResult
+    balance.value = depositInfo.amount
+    userRewards.value = depositInfo.pendingYield
+    depositTime.value = depositInfo.depositTime
+    lastClaimTime.value = depositInfo.lastClaimTime
+    yieldReserves.value = reservesResult
+    apy.value = apyResult / 100 // Convert from basis points to percentage
     transactions.value = transactionsResult
-    
-    // APY is constant from contract, but we can fetch it if needed
-    // For now, keeping it at 5.0% as per contract constant
   } catch (error) {
     console.error('Error fetching vault data:', error)
   } finally {
@@ -132,6 +142,13 @@ const handleWithdraw = async () => {
   }
 }
 
+const handleYieldClaimed = async () => {
+  const addr = address.value
+  if (addr) {
+    await fetchVaultData(addr)
+  }
+}
+
 // Watch for address/connection changes
 watch([address, isConnected], async ([newAddress, connected]) => {
   if (newAddress && connected) {
@@ -140,6 +157,8 @@ watch([address, isConnected], async ([newAddress, connected]) => {
     balance.value = '0'
     userRewards.value = '0'
     transactions.value = []
+    depositTime.value = 0
+    lastClaimTime.value = 0
   }
 }, { immediate: true })
 </script>
