@@ -256,6 +256,7 @@ const fetchStats = async () => {
     yieldReserves.value = reserves
     apy.value = apyBps / 100
   } catch (error) {
+    console.error('Error fetching stats:', error)
   } finally {
     isLoading.value = false
   }

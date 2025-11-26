@@ -43,7 +43,9 @@ export default defineNuxtConfig({
       exclude: ['oxc-parser', '@oxc-parser/binding-darwin-arm64']
     },
     define: {
-      global: 'globalThis'
+      global: 'globalThis',
+      // Expose env vars for use in config files (outside of Nuxt context)
+      'import.meta.env.VITE_REOWN_PROJECT_ID': JSON.stringify(process.env.REOWN_PROJECT_ID || ''),
     }
   },
   nitro: {

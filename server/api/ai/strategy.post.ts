@@ -3,10 +3,17 @@ import { getGeminiClient } from '~~/server/utils/gemini'
 import type { Strategy } from '~~/shared/types/ai'
 
 export default defineEventHandler(async (event) => {
+  console.log('=== AI Strategy Request ===')
+  
   let body
   try {
     body = await readBody(event)
+    console.log('Request body received:', { 
+      vaultBalance: body?.vaultBalance, 
+      hasMarketData: !!body?.marketData 
+    })
   } catch (parseError: any) {
+    console.error('Failed to parse request body:', parseError.message)
     throw createError({
       statusCode: 400,
       message: `Invalid request body: ${parseError.message}`,
@@ -18,7 +25,9 @@ export default defineEventHandler(async (event) => {
   let gemini
   try {
     gemini = getGeminiClient()
+    console.log('Gemini client initialized successfully')
   } catch (initError: any) {
+    console.error('Failed to initialize Gemini client:', initError.message)
     throw createError({
       statusCode: 500,
       message: `Failed to initialize AI: ${initError.message}`,
@@ -88,12 +97,16 @@ Return ONLY a valid JSON array:
 ]`
 
   try {
+    console.log('Calling Gemini API for strategy generation...')
     const response = await gemini.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     })
+    console.log('Gemini API response received')
     
     const responseText = response.text || ''
+    console.log('Response text length:', responseText.length, 'characters')
+    console.log('Response preview:', responseText.substring(0, 200))
     
     // Extract JSON from response (handle markdown code blocks if present)
     let jsonStr = responseText.trim()
@@ -103,13 +116,20 @@ Return ONLY a valid JSON array:
       jsonStr = jsonStr.split('```')[1].split('```')[0].trim()
     }
     
+    console.log('Parsing JSON response...')
     const strategies: Strategy[] = JSON.parse(jsonStr)
+    console.log('Successfully parsed', strategies.length, 'strategies')
     
     return {
       strategies,
       generatedAt: new Date().toISOString(),
     }
   } catch (error: any) {
+    console.error('=== Gemini Strategy Error ===')
+    console.error('Error name:', error.name)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    
     // Check for JSON parsing errors
     if (error.name === 'SyntaxError') {
       throw createError({

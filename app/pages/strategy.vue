@@ -192,6 +192,7 @@ const handleGenerateClick = () => {
 const generateStrategies = async (forceRefresh = false) => {
   // Check cache first (unless forcing refresh)
   if (!forceRefresh && aiStore.loadCachedStrategies(currentBalance.value)) {
+    console.log('Using cached strategies')
     return
   }
   
@@ -203,6 +204,7 @@ const generateStrategies = async (forceRefresh = false) => {
     // Pass balance to cache the strategies
     aiStore.setStrategies(result.strategies, currentBalance.value)
   } catch (err: any) {
+    console.error('Failed to generate strategies:', err)
     error.value = err.message || 'Failed to generate strategies. Please try again.'
   } finally {
     loading.value = false
@@ -222,6 +224,7 @@ const fetchBalance = async () => {
       vaultStore.balance = balance
     }
   } catch (e) {
+    console.error('Failed to fetch balance:', e)
   }
 }
 

@@ -340,6 +340,7 @@ const handleMint = async () => {
       title: 'Mint Failed',
       message: err.message || 'Failed to mint tokens'
     })
+    console.error('Mint error:', err)
   } finally {
     loading.value = false
   }

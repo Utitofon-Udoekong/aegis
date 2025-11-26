@@ -327,6 +327,7 @@ const handleClaimYield = async () => {
     })
     emit('yieldClaimed')
   } catch (error: any) {
+    console.error('Error claiming yield:', error)
     $toast.error({
       title: 'Claim Failed',
       message: error.message || 'Failed to claim yield'
@@ -350,6 +351,7 @@ const handleFundReserves = async () => {
     showFundModal.value = false
     emit('reservesFunded')
   } catch (error: any) {
+    console.error('Error funding reserves:', error)
     $toast.error({
       title: 'Funding Failed',
       message: error.message || 'Failed to fund reserves'
