@@ -16,9 +16,9 @@
             <span class="text-3xl font-bold text-white tabular-nums">{{ formattedBalance }}</span>
             <span class="text-sm font-medium text-emerald-400">vaultBTC</span>
           </div>
-          <p v-if="depositTime > 0" class="mt-2 text-xs text-slate-500 flex items-center gap-1">
+          <p v-if="earliestDepositTime > 0" class="mt-2 text-xs text-slate-500 flex items-center gap-1">
             <Icon name="mdi:clock-outline" class="text-sm" />
-            Deposited {{ formatTimeAgo(depositTime) }}
+            First deposit {{ formatTimeAgo(earliestDepositTime) }}
           </p>
         </div>
       </div>
@@ -63,7 +63,7 @@
               <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
               <span class="text-xs text-green-400 font-medium">Ready to claim!</span>
             </div>
-            <div v-else-if="!canClaimYield && depositTime > 0" class="flex items-center gap-1.5">
+            <div v-else-if="!canClaimYield && earliestDepositTime > 0" class="flex items-center gap-1.5">
               <Icon name="mdi:timer-sand" class="text-sm text-slate-500" />
               <span class="text-xs text-slate-500">Claimable in {{ timeUntilClaimable }}</span>
             </div>
@@ -205,6 +205,7 @@
 
 <script setup lang="ts">
 import { useAppKitAccount } from "@reown/appkit/vue";
+import type { Transaction } from '~~/shared/types/vault'
 
 interface Props {
   balance: string
@@ -213,12 +214,14 @@ interface Props {
   depositTime?: number
   lastClaimTime?: number
   yieldReserves?: string
+  transactions?: Transaction[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   depositTime: 0,
   lastClaimTime: 0,
   yieldReserves: '0',
+  transactions: () => [],
 })
 
 const emit = defineEmits<{
@@ -255,25 +258,39 @@ const formattedReserves = computed(() => {
   return parseFloat(props.yieldReserves || '0').toFixed(2)
 })
 
-// Check if 24 hours have passed since last claim
+// Get the earliest deposit timestamp from transactions (in seconds)
+const earliestDepositTime = computed(() => {
+  const deposits = props.transactions.filter(tx => tx.type === 'deposit')
+  if (deposits.length === 0) return 0
+  
+  // Find the earliest deposit (smallest timestamp)
+  const earliest = deposits.reduce((min, tx) => {
+    const txTime = Math.floor(tx.timestamp / 1000) // Convert ms to seconds
+    return txTime < min ? txTime : min
+  }, Infinity)
+  
+  return earliest === Infinity ? 0 : earliest
+})
+
+const MIN_DEPOSIT_TIME = 86400 // 24 hours in seconds
+
+// Check if 24 hours have passed since the earliest deposit
 const canClaimYield = computed(() => {
   if (parseFloat(props.rewards) <= 0) return false
-  if (props.lastClaimTime === 0) return false
+  if (earliestDepositTime.value === 0) return false
   
   const now = Math.floor(Date.now() / 1000)
-  const timeSinceLastClaim = now - props.lastClaimTime
-  const minDepositTime = 86400 // 1 day in seconds
+  const timeSinceFirstDeposit = now - earliestDepositTime.value
   
-  return timeSinceLastClaim >= minDepositTime
+  return timeSinceFirstDeposit >= MIN_DEPOSIT_TIME
 })
 
 const timeUntilClaimable = computed(() => {
-  if (props.lastClaimTime === 0) return ''
+  if (earliestDepositTime.value === 0) return ''
   
   const now = Math.floor(Date.now() / 1000)
-  const timeSinceLastClaim = now - props.lastClaimTime
-  const minDepositTime = 86400 // 1 day
-  const remaining = minDepositTime - timeSinceLastClaim
+  const timeSinceFirstDeposit = now - earliestDepositTime.value
+  const remaining = MIN_DEPOSIT_TIME - timeSinceFirstDeposit
   
   if (remaining <= 0) return ''
   
@@ -310,7 +327,6 @@ const handleClaimYield = async () => {
     })
     emit('yieldClaimed')
   } catch (error: any) {
-    console.error('Error claiming yield:', error)
     $toast.error({
       title: 'Claim Failed',
       message: error.message || 'Failed to claim yield'
@@ -334,7 +350,6 @@ const handleFundReserves = async () => {
     showFundModal.value = false
     emit('reservesFunded')
   } catch (error: any) {
-    console.error('Error funding reserves:', error)
     $toast.error({
       title: 'Funding Failed',
       message: error.message || 'Failed to fund reserves'

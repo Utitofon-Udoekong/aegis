@@ -41,10 +41,8 @@
         
         <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight">
           <span class="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent">
-            Bitcoin Vault
+            AEGIS
           </span>
-          <br />
-          <span class="text-white">AI</span>
         </h1>
         
         <p class="text-xl sm:text-2xl text-slate-300 mb-4 font-medium">
@@ -83,7 +81,7 @@
     <!-- Features -->
       <section class="mb-20">
         <div class="text-center mb-10">
-          <h2 class="text-2xl font-bold text-white mb-2">Why Bitcoin Vault AI?</h2>
+          <h2 class="text-2xl font-bold text-white mb-2">Why AEGIS?</h2>
           <p class="text-slate-400">Secure, intelligent, and ready for the future</p>
         </div>
         
@@ -258,7 +256,6 @@ const fetchStats = async () => {
     yieldReserves.value = reserves
     apy.value = apyBps / 100
   } catch (error) {
-    console.error('Error fetching stats:', error)
   } finally {
     isLoading.value = false
   }

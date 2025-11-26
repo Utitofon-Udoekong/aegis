@@ -51,6 +51,7 @@
         :deposit-time="depositTime"
         :last-claim-time="lastClaimTime"
         :yield-reserves="yieldReserves"
+        :transactions="transactions"
         @yield-claimed="handleYieldClaimed"
       />
 
@@ -125,7 +126,6 @@ const fetchVaultData = async (userAddress: string) => {
 
   isLoading.value = true
   const startTime = Date.now()
-  console.log('Fetching vault data for:', userAddress)
   
   try {
     // Fetch critical data in parallel (fast RPC calls)
@@ -142,7 +142,6 @@ const fetchVaultData = async (userAddress: string) => {
       getAPY().catch(() => 500),
     ])
 
-    console.log('Core data loaded in', Date.now() - startTime, 'ms')
 
     // Update UI immediately with core data
     balance.value = depositInfoResult.amount
@@ -162,16 +161,13 @@ const fetchVaultData = async (userAddress: string) => {
     // Fetch transactions in background (slow - uses public RPCs)
     fetchTransactions(userAddress)
       .then((txs) => {
-        console.log('Transactions loaded in', Date.now() - startTime, 'ms:', txs.length)
         transactions.value = txs
         syncToStore()
       })
       .catch((e) => {
-        console.error('Error fetching transactions:', e)
       })
 
   } catch (error) {
-    console.error('Error fetching vault data:', error)
     isLoading.value = false
     hasLoadedOnce.value = true
   }

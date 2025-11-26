@@ -61,7 +61,6 @@ const generateStrategies = async () => {
     const result = await generateStrategy(vaultStore.balance)
     aiStore.setStrategies(result.strategies)
   } catch (error: any) {
-    console.error('Failed to generate strategies:', error)
   } finally {
     isGenerating.value = false
   }

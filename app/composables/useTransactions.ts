@@ -39,14 +39,12 @@ export const useTransactions = () => {
     const vaultContractAddress = config.public.vaultContractAddress as string
     
     if (!vaultContractAddress || vaultContractAddress.trim() === '') {
-      console.warn('VAULT_CONTRACT_ADDRESS is not configured')
       return []
     }
 
     // Check cache first - return immediately if valid
     const cached = getCachedTransactions(userAddress)
     if (cached && !cached.isExpired) {
-      console.log('Using cached transactions:', cached.transactions.length)
       return cached.transactions
     }
 
@@ -57,7 +55,6 @@ export const useTransactions = () => {
       'https://sepolia.drpc.org',
     ]
     
-    console.log('Fetching transactions for:', userAddress)
 
     for (const rpcUrl of publicRpcs) {
       try {
@@ -154,21 +151,18 @@ export const useTransactions = () => {
         const transactions = [...depositTransactions, ...withdrawTransactions]
           .sort((a, b) => b.blockNumber - a.blockNumber)
         
-        console.log('Fetched transactions:', transactions.length)
         
         // Cache the results
         cacheTransactions(userAddress, transactions)
         
         return transactions
       } catch (error: any) {
-        console.warn(`RPC ${rpcUrl} failed:`, error.message)
         continue
       }
     }
     
     // If all RPCs failed but we have stale cache, use it
     if (cached) {
-      console.log('Using stale cached transactions')
       return cached.transactions
     }
     

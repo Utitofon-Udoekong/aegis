@@ -10,8 +10,8 @@ createAppKit({
   themeMode: 'light',
 
   metadata: {
-    name: 'Bitcoin Vault AI',
-    description: 'Bitcoin Vault AI',
+    name: 'AEGIS',
+    description: 'AEGIS',
     url: 'https://reown.com/appkit',
     icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
   }

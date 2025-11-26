@@ -28,7 +28,7 @@
           <Icon name="mdi:file-document" />
           Technical Documentation
         </div>
-        <h1 class="text-5xl font-bold mb-4 text-white">Bitcoin Vault AI</h1>
+        <h1 class="text-5xl font-bold mb-4 text-white">AEGIS</h1>
         <p class="text-xl text-slate-400">AI-Optimized DeFi Vaults for Bitcoin</p>
       </div>
 
@@ -47,7 +47,7 @@
             
             <div class="space-y-4 text-slate-300">
               <p>
-                <strong class="text-white">Bitcoin Vault AI</strong> is an AI-enhanced DeFi vault platform designed to optimize yield strategies for Bitcoin-backed assets. 
+                <strong class="text-white">AEGIS</strong> is an AI-enhanced DeFi vault platform designed to optimize yield strategies for Bitcoin-backed assets. 
               The platform combines smart contract security with artificial intelligence to provide personalized, risk-adjusted investment recommendations.
             </p>
               <p>
@@ -178,7 +178,7 @@
               <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-orange-500/20 ring-1 ring-orange-500/30">
                 <span class="text-lg font-bold text-orange-400">4</span>
               </div>
-              <h2 class="text-2xl font-bold text-white">Bitcoin Vault Portability</h2>
+              <h2 class="text-2xl font-bold text-white">Vault Portability</h2>
             </div>
             
             <div class="space-y-4 text-slate-300">
@@ -225,7 +225,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
                 <p class="text-xs text-slate-500 mb-1">Project</p>
-                <p class="text-sm font-semibold text-white">Bitcoin Vault AI</p>
+                <p class="text-sm font-semibold text-white">AEGIS</p>
               </div>
               <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
                 <p class="text-xs text-slate-500 mb-1">Hackathon</p>
@@ -252,9 +252,9 @@
 
 <script setup lang="ts">
 useHead({
-  title: 'Whitepaper - Bitcoin Vault AI',
+  title: 'Whitepaper - AEGIS',
   meta: [
-    { name: 'description', content: 'Technical whitepaper for Bitcoin Vault AI - AI-optimized DeFi vaults for Bitcoin' }
+    { name: 'description', content: 'Technical whitepaper for AEGIS - AI-optimized DeFi vaults for Bitcoin' }
   ]
 })
 </script>

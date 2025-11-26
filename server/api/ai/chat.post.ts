@@ -2,18 +2,10 @@
 import { getGeminiClient } from '~~/server/utils/gemini'
 
 export default defineEventHandler(async (event) => {
-  console.log('=== AI Chat Request ===')
-  
   let body
   try {
     body = await readBody(event)
-    console.log('Request body received:', { 
-      message: body?.message?.substring(0, 50) + '...', 
-      hasContext: !!body?.context,
-      historyLength: body?.history?.length || 0 
-    })
   } catch (parseError: any) {
-    console.error('Failed to parse request body:', parseError.message)
     throw createError({
       statusCode: 400,
       message: `Invalid request body: ${parseError.message}`,
@@ -23,7 +15,6 @@ export default defineEventHandler(async (event) => {
   const { message, context, history } = body
   
   if (!message) {
-    console.error('No message provided in request')
     throw createError({
       statusCode: 400,
       message: 'Message is required',
@@ -33,9 +24,7 @@ export default defineEventHandler(async (event) => {
   let gemini
   try {
     gemini = getGeminiClient()
-    console.log('Gemini client initialized successfully')
   } catch (initError: any) {
-    console.error('Failed to initialize Gemini client:', initError.message)
     throw createError({
       statusCode: 500,
       message: `Failed to initialize AI: ${initError.message}`,
@@ -43,10 +32,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Project-specific system prompt with comprehensive knowledge
-  const systemPrompt = `You are the AI assistant for Bitcoin Vault AI, a DeFi platform for Bitcoin-backed assets.
+  const systemPrompt = `You are the AI assistant for AEGIS, a DeFi platform for Bitcoin-backed assets.
 
 ## ABOUT THIS PROJECT
-Bitcoin Vault AI is an AI-enhanced DeFi vault platform that allows users to deposit vaultBTC tokens and earn yield. The platform uses AI to provide personalized investment strategies.
+AEGIS is an AI-enhanced DeFi vault platform that allows users to deposit vaultBTC tokens and earn yield. The platform uses AI to provide personalized investment strategies.
 
 ## KEY FEATURES
 - **AIVault Smart Contract**: Main vault for deposits/withdrawals with 5% APY
@@ -101,28 +90,18 @@ ${message}
 
 ## YOUR RESPONSE`
 
-  console.log('Prompt length:', fullPrompt.length, 'characters')
-
   try {
-    console.log('Calling Gemini API...')
     const response = await gemini.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: fullPrompt,
     })
-    console.log('Gemini API response received')
     
     const responseText = response.text || 'I apologize, but I could not generate a response.'
-    console.log('Response text length:', responseText.length, 'characters')
     
     return {
       response: responseText,
     }
   } catch (error: any) {
-    console.error('=== Gemini API Error ===')
-    console.error('Error name:', error.name)
-    console.error('Error message:', error.message)
-    console.error('Error stack:', error.stack)
-    
     // Check for specific error types
     if (error.message?.includes('API key')) {
       throw createError({

@@ -50,7 +50,6 @@ const handleConnect = async () => {
   try {
     await open({ view: 'Connect' , namespace: 'eip155'})
   } catch (error) {
-    console.error('Failed to connect wallet:', error)
   } finally {
     walletStore.setConnecting(false)
   }
@@ -61,13 +60,11 @@ const handleDisconnect = async () => {
     await disconnect({namespace: 'eip155'})
     // User can disconnect from the account modal
   } catch (error) {
-    console.error('Failed to open account modal:', error)
   }
 }
 
 // Watch for connection state changes (for debugging)
 watch([isConnected, address], ([connected, addr]) => {
-  console.log('Wallet connection state:', { connected, address: addr })
 }, { immediate: true })
 </script>
 

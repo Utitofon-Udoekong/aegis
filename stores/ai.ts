@@ -77,7 +77,6 @@ export const useAIStore = defineStore('ai', {
       if (cachedBalance > 0 && currentBalance > 0) {
         const diff = Math.abs(cachedBalance - currentBalance) / cachedBalance
         if (diff < 0.1) { // 10% tolerance
-          console.log('Using cached strategies for balance:', cachedBalance, '(current:', currentBalance, ')')
           this.strategies = cached.strategies
           this.lastBalanceUsed = cached.balance
           return true

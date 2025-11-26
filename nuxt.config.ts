@@ -17,9 +17,9 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'Bitcoin Vault AI - Smart DeFi for Bitcoin',
+      title: 'AEGIS - AI-Powered DeFi Vault',
       meta: [
-        { name: 'description', content: 'AI-optimized Bitcoin DeFi vaults' },
+        { name: 'description', content: 'AEGIS - AI-optimized DeFi vaults for maximum yield' },
       ],
     },
   },

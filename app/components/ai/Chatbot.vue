@@ -202,7 +202,7 @@ const clearChat = () => {
   // Re-add welcome message
   aiStore.addMessage({
     role: 'assistant',
-    content: `Hello! I'm your Bitcoin Vault AI assistant. I can help with:
+    content: `Hello! I'm your AEGIS assistant. I can help with:
 
 • **Vault Operations** - Deposits, withdrawals, yield claiming
 • **Security** - Smart contract protections
@@ -227,7 +227,7 @@ const sendMessage = async () => {
       apy: vaultStore.apy,
       rewards: vaultStore.userRewards,
       projectInfo: {
-        name: 'Bitcoin Vault AI',
+        name: 'AEGIS',
         description: 'AI-enhanced DeFi vault for Bitcoin-backed assets',
         contracts: {
           aiVault: {
@@ -260,7 +260,7 @@ onMounted(() => {
   if (aiStore.messages.length === 0) {
     aiStore.addMessage({
       role: 'assistant',
-      content: `Hello! I'm your Bitcoin Vault AI assistant. I can help with:
+      content: `Hello! I'm your AEGIS assistant. I can help with:
 
 • **Vault Operations** - Deposits, withdrawals, yield claiming
 • **Security** - Smart contract protections

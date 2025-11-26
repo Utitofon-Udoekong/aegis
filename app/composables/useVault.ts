@@ -20,7 +20,6 @@ export const useVault = () => {
     const vaultBtcAddress = config.public.vaultBtcAddress as string
     
     if (!vaultBtcAddress || vaultBtcAddress.trim() === '') {
-      console.warn('VAULT_BTC_ADDRESS is not configured')
       return '0'
     }
 
@@ -53,11 +52,6 @@ export const useVault = () => {
 
     // Use MAX_UINT256 for unlimited approval to avoid repeated approvals
     const approveAmount = MAX_UINT256
-    
-    console.log('Approving vault to spend tokens...')
-    console.log('Token address:', vaultBtcAddress)
-    console.log('Spender (vault):', vaultContractAddress)
-    console.log('Approve amount: unlimited (MAX_UINT256)')
 
     // Estimate gas - approve is a simple operation, ~50k gas
     let gasLimit = 100000n // Reasonable default for approve
@@ -71,15 +65,12 @@ export const useVault = () => {
           args: [vaultContractAddress as Address, approveAmount],
         }),
       })
-      console.log('Gas estimate for approve:', estimatedGas.toString())
       // Add 50% buffer
       gasLimit = (estimatedGas * 150n) / 100n
       if (gasLimit < 50000n) gasLimit = 50000n
       if (gasLimit > 200000n) gasLimit = 200000n
-      console.log('Final gas limit for approve:', gasLimit.toString())
     } catch (error: any) {
       // Use default if estimation fails
-      console.warn('Gas estimation failed for approve, using default:', error.message)
     }
 
     const hash = await writeContract(wagmiAdapter.wagmiConfig, {
@@ -89,7 +80,6 @@ export const useVault = () => {
       args: [vaultContractAddress as Address, approveAmount],
       gas: gasLimit,
     })
-    console.log('Approve transaction hash:', hash)
     return hash
   }
   
@@ -134,12 +124,10 @@ export const useVault = () => {
         abi: AIVaultABI,
         functionName: 'paused',
       })
-      console.log('Vault paused status:', isPaused)
       if (isPaused) {
         throw new Error('Vault is currently paused. Deposits are not available.')
       }
     } catch (error: any) {
-      console.warn('Could not check paused status:', error.message)
     }
     
     // Diagnostic: Check vaultBTC address in contract vs our config
@@ -150,25 +138,17 @@ export const useVault = () => {
         abi: AIVaultABI,
         functionName: 'vaultBTC',
       })
-      console.log('VaultBTC address in contract:', contractVaultBTC)
-      console.log('VaultBTC address in config:', vaultBtcAddress)
-      console.log('Addresses match?', (contractVaultBTC as string).toLowerCase() === vaultBtcAddress.toLowerCase())
       
       if ((contractVaultBTC as string).toLowerCase() !== vaultBtcAddress.toLowerCase()) {
         throw new Error(`Token address mismatch! Contract expects ${contractVaultBTC}, but config has ${vaultBtcAddress}`)
       }
     } catch (error: any) {
       if (error.message?.includes('mismatch')) throw error
-      console.warn('Could not verify vaultBTC address:', error.message)
     }
     
     // Check balance first
     const walletBalance = await getVaultBTCBalance(addressValue)
     const walletBalanceWei = parseUnits(walletBalance, 18)
-    console.log('Wallet vaultBTC balance:', walletBalance)
-    console.log('Wallet balance in wei:', walletBalanceWei.toString())
-    console.log('Deposit amount in wei:', amountInWei.toString())
-    console.log('Balance sufficient?', walletBalanceWei >= amountInWei)
     
     if (amountInWei > walletBalanceWei) {
       throw new Error(`Insufficient balance. You have ${walletBalance} vaultBTC, but trying to deposit ${amount} vaultBTC`)
@@ -176,33 +156,24 @@ export const useVault = () => {
     
     // Check and approve if needed - check if allowance is sufficient for the amount
     const currentAllowance = await checkAllowance(addressValue)
-    console.log('Current allowance:', currentAllowance.toString())
-    console.log('Amount needed:', amountInWei.toString())
-    console.log('Allowance sufficient?', currentAllowance >= amountInWei)
     
     if (currentAllowance < amountInWei) {
-      console.log('Insufficient allowance, requesting approval...')
       // Need to approve - wait for approval to complete
       const approveHash = await approveVaultBTC(amount)
-      console.log('Waiting for approval transaction:', approveHash)
       const approveReceipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: approveHash })
-      console.log('Approval receipt status:', approveReceipt.status)
       
       if (approveReceipt.status !== 'success') {
         throw new Error('Approval transaction failed')
       }
       
       // Wait a bit for state to update (RPC caching issue)
-      console.log('Waiting for RPC state to update...')
       await new Promise(resolve => setTimeout(resolve, 3000))
       
       // Verify allowance was set correctly
       const newAllowance = await checkAllowance(addressValue)
-      console.log('New allowance after approval:', newAllowance.toString())
       if (newAllowance < amountInWei) {
         throw new Error(`Approval failed or insufficient. Got ${newAllowance.toString()}, needed ${amountInWei.toString()}`)
       }
-      console.log('Approval confirmed, proceeding with deposit...')
     }
     
     // Then deposit
@@ -219,15 +190,12 @@ export const useVault = () => {
             args: [amountInWei],
           }),
         })
-        console.log('Gas estimate for deposit:', estimatedGas.toString())
         // Add 50% buffer
         gasLimit = (estimatedGas * 150n) / 100n
         if (gasLimit < 150000n) gasLimit = 150000n
         if (gasLimit > 500000n) gasLimit = 500000n
-        console.log('Final gas limit for deposit:', gasLimit.toString())
       } catch (error: any) {
         // Use default if estimation fails
-        console.warn('Gas estimation failed for deposit, using default:', error.message)
       }
 
       const hash = await writeContract(wagmiAdapter.wagmiConfig, {
@@ -286,15 +254,12 @@ export const useVault = () => {
             args: [amountInWei],
           }),
         })
-        console.log('Gas estimate for withdraw:', estimatedGas.toString())
         // Add 50% buffer
         gasLimit = (estimatedGas * 150n) / 100n
         if (gasLimit < 150000n) gasLimit = 150000n
         if (gasLimit > 500000n) gasLimit = 500000n
-        console.log('Final gas limit for withdraw:', gasLimit.toString())
       } catch (error: any) {
         // Use default if estimation fails
-        console.warn('Gas estimation failed for withdraw, using default:', error.message)
       }
     }
     
@@ -317,7 +282,6 @@ export const useVault = () => {
     const vaultContractAddress = config.public.vaultContractAddress as string
     
     if (!vaultContractAddress || vaultContractAddress.trim() === '') {
-      console.warn('VAULT_CONTRACT_ADDRESS is not configured')
       return '0'
     }
 
@@ -338,7 +302,6 @@ export const useVault = () => {
     const vaultContractAddress = config.public.vaultContractAddress as string
     
     if (!vaultContractAddress || vaultContractAddress.trim() === '') {
-      console.warn('VAULT_CONTRACT_ADDRESS is not configured')
       return '0'
     }
 
@@ -359,7 +322,6 @@ export const useVault = () => {
     const vaultContractAddress = config.public.vaultContractAddress as string
     
     if (!vaultContractAddress || vaultContractAddress.trim() === '') {
-      console.warn('VAULT_CONTRACT_ADDRESS is not configured')
       return '0'
     }
 
@@ -404,7 +366,6 @@ export const useVault = () => {
       if (gasLimit < 100000n) gasLimit = 100000n
       if (gasLimit > 400000n) gasLimit = 400000n
     } catch (error: any) {
-      console.warn('Gas estimation failed for claimYield, using default:', error.message)
     }
     
     const hash = await writeContract(wagmiAdapter.wagmiConfig, {
@@ -525,7 +486,6 @@ export const useVault = () => {
       if (gasLimit < 100000n) gasLimit = 100000n
       if (gasLimit > 500000n) gasLimit = 500000n
     } catch (error: any) {
-      console.warn('Gas estimation failed for fundYieldReserves, using default:', error.message)
     }
     
     const hash = await writeContract(wagmiAdapter.wagmiConfig, {
@@ -630,15 +590,12 @@ export const useVault = () => {
           args: [accountData.value.address as Address, amountInWei],
         }),
       })
-      console.log('Gas estimate for mint:', estimatedGas.toString())
       // Add 50% buffer
       gasLimit = (estimatedGas * 150n) / 100n
       if (gasLimit < 100000n) gasLimit = 100000n
       if (gasLimit > 400000n) gasLimit = 400000n
-      console.log('Final gas limit for mint:', gasLimit.toString())
     } catch (error: any) {
       // Use default if estimation fails
-      console.warn('Gas estimation failed for mint, using default:', error.message)
     }
     
     try {
@@ -661,7 +618,6 @@ export const useVault = () => {
     const vaultBtcAddress = config.public.vaultBtcAddress as string
     
     if (!vaultBtcAddress || vaultBtcAddress.trim() === '') {
-      console.warn('VAULTBTC_ADDRESS is not configured')
       return {
         remainingDaily: '0',
         remainingLifetime: '0',
@@ -689,10 +645,6 @@ export const useVault = () => {
       functionName: 'getCooldownRemaining',
       args: [userAddress],
     })
-    console.log("remainingDaily", remainingDaily)
-    console.log("remainingLifetime", remainingLifetime)
-    console.log("cooldownRemaining", cooldownRemaining)
-    console.log("canMint", Number(cooldownRemaining) === 0 && Number(remainingDaily) > 0 && Number(remainingLifetime) > 0)
       const cooldownSeconds = Number(formatUnits(cooldownRemaining as bigint, 18))
     return {
       remainingDaily: formatUnits(remainingDaily as bigint, 18),

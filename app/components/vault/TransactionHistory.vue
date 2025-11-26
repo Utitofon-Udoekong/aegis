@@ -59,6 +59,18 @@
             <p class="text-xs text-slate-500 mt-1">
               {{ new Date(tx.timestamp).toLocaleString() }}
             </p>
+            
+            <!-- Claimable info for deposits -->
+            <div v-if="tx.type === 'deposit'" class="mt-1.5">
+              <div v-if="isDepositClaimable(tx.timestamp)" class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                <span class="text-xs text-green-400 font-medium">Yield eligible</span>
+              </div>
+              <div v-else class="flex items-center gap-1.5">
+                <Icon name="mdi:timer-sand" class="text-xs text-amber-400" />
+                <span class="text-xs text-amber-400">Claimable in {{ getTimeUntilClaimable(tx.timestamp) }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- Link -->
@@ -85,6 +97,33 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const MIN_DEPOSIT_TIME = 86400 // 24 hours in seconds
+
+// Check if a deposit's yield is claimable (24h passed since deposit)
+const isDepositClaimable = (timestamp: number): boolean => {
+  const depositTime = Math.floor(timestamp / 1000) // Convert ms to seconds
+  const now = Math.floor(Date.now() / 1000)
+  return (now - depositTime) >= MIN_DEPOSIT_TIME
+}
+
+// Get time remaining until deposit's yield is claimable
+const getTimeUntilClaimable = (timestamp: number): string => {
+  const depositTime = Math.floor(timestamp / 1000)
+  const now = Math.floor(Date.now() / 1000)
+  const elapsed = now - depositTime
+  const remaining = MIN_DEPOSIT_TIME - elapsed
+  
+  if (remaining <= 0) return ''
+  
+  const hours = Math.floor(remaining / 3600)
+  const minutes = Math.floor((remaining % 3600) / 60)
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`
+  }
+  return `${minutes}m`
+}
 </script>
 
 <style scoped>

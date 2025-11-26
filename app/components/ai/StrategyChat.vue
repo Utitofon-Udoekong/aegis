@@ -11,7 +11,7 @@
         </div>
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-white">Vault AI Assistant</h3>
-          <p class="text-xs text-slate-500">Powered by AI • Specialized in Bitcoin Vault strategies</p>
+          <p class="text-xs text-slate-500">Powered by AI • Specialized in AEGIS vault strategies</p>
         </div>
         <button 
           v-if="messages.length > 1" 
@@ -164,7 +164,7 @@ const clearChat = () => {
   // Re-add welcome message
   aiStore.addMessage({
     role: 'assistant',
-    content: `Hello! I'm your Bitcoin Vault AI assistant. I'm specialized in helping you understand this DeFi platform, including:
+    content: `Hello! I'm your AEGIS assistant. I'm specialized in helping you understand this DeFi platform, including:
 
 • **AIVault Contract** - Deposits, withdrawals, and yield mechanics
 • **VaultBTC Token** - The ERC20 token representing Bitcoin positions
@@ -194,7 +194,7 @@ const sendMessage = async () => {
       
       // Project information for AI training
       projectInfo: {
-        name: 'Bitcoin Vault AI',
+        name: 'AEGIS',
         description: 'An AI-enhanced DeFi vault platform for Bitcoin-backed assets',
         
         contracts: {
@@ -246,7 +246,7 @@ onMounted(() => {
   if (aiStore.messages.length === 0) {
     aiStore.addMessage({
       role: 'assistant',
-      content: `Hello! I'm your Bitcoin Vault AI assistant. I'm specialized in helping you understand this DeFi platform, including:
+      content: `Hello! I'm your AEGIS assistant. I'm specialized in helping you understand this DeFi platform, including:
 
 • **AIVault Contract** - Deposits, withdrawals, and yield mechanics
 • **VaultBTC Token** - The ERC20 token representing Bitcoin positions  

@@ -161,13 +161,11 @@ const handleDeposit = async () => {
     
     // Step 1: Fund yield reserves with the fee
     if (parseFloat(fee) > 0) {
-      console.log('Funding yield reserves with fee:', fee)
       $toast.info({ title: 'Processing Fee', message: `Funding reserves with ${fee} vaultBTC` })
       await fundYieldReserves(fee)
     }
     
     // Step 2: Deposit the main amount
-    console.log('Depositing to vault:', depositAmount)
     await deposit(depositAmount)
     
     $toast.success({
@@ -178,7 +176,6 @@ const handleDeposit = async () => {
     amount.value = ''
     emit('deposited', depositAmount)
   } catch (err: any) {
-    console.error('Deposit error:', err)
     $toast.error({
       title: 'Deposit Failed',
       message: err.message || 'Failed to deposit'

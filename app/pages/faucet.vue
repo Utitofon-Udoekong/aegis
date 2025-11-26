@@ -31,7 +31,7 @@
           <Icon name="mdi:water" class="text-4xl text-cyan-400" />
         </div>
         <h1 class="text-4xl font-bold mb-3 text-white">vaultBTC Faucet</h1>
-        <p class="text-lg text-slate-400">Get test tokens to try out Bitcoin Vault AI</p>
+        <p class="text-lg text-slate-400">Get test tokens to try out AEGIS</p>
       </div>
 
       <!-- Main Faucet Card -->
@@ -340,7 +340,6 @@ const handleMint = async () => {
       title: 'Mint Failed',
       message: err.message || 'Failed to mint tokens'
     })
-    console.error('Mint error:', err)
   } finally {
     loading.value = false
   }
