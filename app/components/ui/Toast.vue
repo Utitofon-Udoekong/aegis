@@ -1,68 +1,80 @@
-<template>
-  <Transition
-    enter-active-class="transition ease-out duration-300"
-    enter-from-class="opacity-0 translate-y-2"
-    enter-to-class="opacity-100 translate-y-0"
-    leave-active-class="transition ease-in duration-200"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0"
-  >
-    <div
-      v-if="show"
-      :class="[
-        'fixed bottom-4 right-4 z-50 max-w-md w-full card flex items-center gap-3',
-        typeClasses,
-      ]"
-    >
-      <Icon :name="iconName" class="text-2xl" />
-      <div class="flex-1">
-        <p class="font-semibold">{{ title }}</p>
-        <p v-if="message" class="text-sm text-slate-300">{{ message }}</p>
-      </div>
-      <button
-        @click="$emit('close')"
-        class="text-slate-400 hover:text-white transition-colors"
-      >
-        <Icon name="mdi:close" />
-      </button>
-    </div>
-  </Transition>
-</template>
-
 <script setup lang="ts">
-interface Props {
-  show: boolean
-  type?: 'success' | 'error' | 'warning' | 'info'
+const props = defineProps<{
   title: string
   message?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  type: 'info',
-})
-
-defineEmits<{
-  close: []
+  type: 'success' | 'error' | 'info' | 'warning'
 }>()
 
-const typeClasses = computed(() => {
-  const types = {
-    success: 'border-green-500 bg-green-900/20',
-    error: 'border-red-500 bg-red-900/20',
-    warning: 'border-yellow-500 bg-yellow-900/20',
-    info: 'border-blue-500 bg-blue-900/20',
-  }
-  return types[props.type]
-})
+const { close } = useNinjaToasterState()
 
-const iconName = computed(() => {
-  const icons = {
-    success: 'mdi:check-circle',
-    error: 'mdi:alert-circle',
-    warning: 'mdi:alert',
-    info: 'mdi:information',
+const typeConfig = computed(() => {
+  switch (props.type) {
+    case 'success':
+      return {
+        icon: 'mdi:check-circle',
+        bgClass: 'from-emerald-500/20 to-emerald-600/10',
+        borderClass: 'border-emerald-500/30',
+        iconClass: 'text-emerald-400 bg-emerald-500/20',
+        titleClass: 'text-emerald-300',
+      }
+    case 'error':
+      return {
+        icon: 'mdi:alert-circle',
+        bgClass: 'from-red-500/20 to-red-600/10',
+        borderClass: 'border-red-500/30',
+        iconClass: 'text-red-400 bg-red-500/20',
+        titleClass: 'text-red-300',
+      }
+    case 'warning':
+      return {
+        icon: 'mdi:alert',
+        bgClass: 'from-amber-500/20 to-amber-600/10',
+        borderClass: 'border-amber-500/30',
+        iconClass: 'text-amber-400 bg-amber-500/20',
+        titleClass: 'text-amber-300',
+      }
+    case 'info':
+    default:
+      return {
+        icon: 'mdi:information',
+        bgClass: 'from-cyan-500/20 to-cyan-600/10',
+        borderClass: 'border-cyan-500/30',
+        iconClass: 'text-cyan-400 bg-cyan-500/20',
+        titleClass: 'text-cyan-300',
+      }
   }
-  return icons[props.type]
 })
 </script>
 
+<template>
+  <div 
+    class="relative flex items-start gap-3 p-4 rounded-xl border backdrop-blur-xl bg-gradient-to-br shadow-xl"
+    :class="[typeConfig.bgClass, typeConfig.borderClass]"
+  >
+    <!-- Icon -->
+    <div 
+      class="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg"
+      :class="typeConfig.iconClass"
+    >
+      <Icon :name="typeConfig.icon" class="text-lg" />
+    </div>
+    
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <h4 class="font-semibold text-sm" :class="typeConfig.titleClass">
+        {{ props.title }}
+      </h4>
+      <p v-if="props.message" class="mt-0.5 text-xs text-slate-400 line-clamp-2">
+        {{ props.message }}
+      </p>
+    </div>
+    
+    <!-- Close button -->
+    <button 
+      @click="close()"
+      class="flex-shrink-0 p-1 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
+    >
+      <Icon name="mdi:close" class="text-sm" />
+    </button>
+  </div>
+</template>

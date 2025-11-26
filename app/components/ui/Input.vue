@@ -1,8 +1,12 @@
 <template>
   <div class="w-full">
-    <label v-if="label" class="block text-sm font-medium mb-2">
+    <label v-if="label" class="block text-sm font-medium text-slate-300 mb-2">
       {{ label }}
     </label>
+    <div class="relative group">
+      <!-- Glow effect on focus -->
+      <div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl opacity-0 group-focus-within:opacity-100 blur transition-opacity duration-300"></div>
+      
     <div class="relative">
       <input
         :type="type"
@@ -10,9 +14,12 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :class="[
-          'w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50',
-          error ? 'border-red-500' : '',
-          $slots.suffix ? 'pr-24' : '',
+            'w-full bg-slate-800/80 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-500',
+            'focus:outline-none focus:border-emerald-500/50 focus:bg-slate-800',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+            'transition-all duration-200',
+            error ? 'border-red-500/50 focus:border-red-500' : '',
+            $slots.suffix ? 'pr-28' : '',
         ]"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       />
@@ -20,8 +27,12 @@
         <slot name="suffix" />
       </div>
     </div>
-    <p v-if="error" class="mt-1 text-sm text-red-500">{{ error }}</p>
-    <p v-if="hint && !error" class="mt-1 text-sm text-slate-400">{{ hint }}</p>
+    </div>
+    <p v-if="error" class="mt-2 text-sm text-red-400 flex items-center gap-1">
+      <Icon name="mdi:alert-circle" class="text-sm" />
+      {{ error }}
+    </p>
+    <p v-if="hint && !error" class="mt-2 text-sm text-slate-500">{{ hint }}</p>
   </div>
 </template>
 
@@ -45,4 +56,3 @@ defineEmits<{
   'update:modelValue': [value: string]
 }>()
 </script>
-

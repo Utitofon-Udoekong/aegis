@@ -1,5 +1,5 @@
 {
-  "name": "bitcoin-vault-ai",
+  "name": "aegis",
   "version": "1.0.0",
   "type": "module",
   "private": true,
@@ -11,12 +11,13 @@
     "postinstall": "nuxt prepare",
     "compile": "cd contract && npx hardhat compile",
     "test": "cd contract && npx hardhat test",
-    "deploy:sepolia": "cd contract && npx hardhat ignition deploy ignition/modules/DeployVault.ts --network sepolia",
+    "contract:clean": "cd contract && npx hardhat clean && rm -rf ignition/deployments rm -rf cache",
+    "deploy:sepolia": "cd contract && npx hardhat ignition deploy ignition/modules/DeployVault.ts --network sepolia --reset",
     "deploy:simulate": "cd contract && npx hardhat ignition deploy ignition/modules/DeployVault.ts",
     "verify": "cd contract && npx hardhat verify --network sepolia"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.27.0",
+    "@google/genai": "^1.30.0",
     "@nuxt/icon": "2.1.0",
     "@nuxt/image": "2.0.0",
     "@nuxtjs/tailwindcss": "6.14.0",
@@ -33,7 +34,9 @@
     "viem": "^2.40.2",
     "vue": "^3.5.25",
     "vue-router": "^4.6.3",
-    "wagmi": "^3.0.1",
-    "zod": "^3.23.0"
+    "wagmi": "^3.0.1"
+  },
+  "devDependencies": {
+    "@cssninja/nuxt-toaster": "^0.5.0"
   }
 }

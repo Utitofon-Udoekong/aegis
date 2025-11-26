@@ -1,9 +1,10 @@
 <template>
-  <div class="min-h-screen bg-slate-950 dark:bg-slate-950 relative overflow-hidden">
+  <div class="min-h-screen bg-slate-950 relative overflow-hidden">
     <!-- Animated background elements -->
     <div class="absolute inset-0 bg-grid-pattern"></div>
-    <div class="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
 
     <div class="relative container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
       <!-- Header -->
@@ -14,7 +15,7 @@
           </NuxtLink>
           <div class="flex items-center gap-4">
             <NuxtLink to="/vault">
-              <UiButton variant="outline" size="sm" class="border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10">
+              <UiButton variant="outline" size="sm">
                 <Icon name="mdi:wallet" class="mr-2" />
                 Vault
               </UiButton>
@@ -24,42 +25,43 @@
         </div>
       </header>
 
-      <!-- Faucet Content -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12">
-        <div class="text-center mb-8">
-          <Icon name="mdi:water" class="text-6xl text-emerald-400 mb-4 mx-auto" />
-          <h1 class="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
-            vaultBTC Faucet
-          </h1>
-          <p class="text-lg text-gray-600 dark:text-gray-400">
-            Get test tokens to try out Bitcoin Vault AI
-          </p>
+      <!-- Faucet Hero -->
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 ring-1 ring-cyan-500/30 mb-6">
+          <Icon name="mdi:water" class="text-4xl text-cyan-400" />
         </div>
+        <h1 class="text-4xl font-bold mb-3 text-white">vaultBTC Faucet</h1>
+        <p class="text-lg text-slate-400">Get test tokens to try out Bitcoin Vault AI</p>
+      </div>
 
-        <UiCard class="mb-6">
-          <div class="space-y-4">
+      <!-- Main Faucet Card -->
+      <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 via-slate-900 to-slate-900 border border-cyan-500/20 p-8 mb-8 transition-all duration-300 hover:border-cyan-500/30">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="relative space-y-6">
+          <!-- Amount Selection -->
             <div>
-              <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Amount to Request
-              </label>
-              <div class="flex gap-2">
-                <UiButton
+            <label class="block text-sm font-medium text-slate-300 mb-3">Select Amount</label>
+            <div class="grid grid-cols-5 gap-2">
+              <button
                   v-for="amount in presetAmounts"
                   :key="amount"
                   @click="selectedAmount = amount"
-                  :variant="selectedAmount === amount ? 'primary' : 'outline'"
-                  size="sm"
-                  class="flex-1"
+                :class="[
+                  'py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200',
+                  selectedAmount === amount 
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25' 
+                    : 'bg-slate-800/50 text-slate-400 border border-slate-700/50 hover:border-cyan-500/30 hover:text-cyan-400'
+                ]"
                 >
-                  {{ amount }} vaultBTC
-                </UiButton>
+                {{ amount }}
+              </button>
               </div>
             </div>
 
+          <!-- Custom Amount -->
             <div>
-              <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Or Enter Custom Amount
-              </label>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Or Enter Custom Amount</label>
               <UiInput
                 v-model="customAmount"
                 type="number"
@@ -67,92 +69,144 @@
                 :disabled="loading"
               >
                 <template #suffix>
-                  <span class="text-slate-400">vaultBTC</span>
+                <span class="text-slate-500 text-sm">vaultBTC</span>
                 </template>
               </UiInput>
             </div>
 
-            <div v-if="isConnected && address" class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Your Wallet:</span>
-                <span class="text-sm font-mono text-emerald-600 dark:text-emerald-400">{{ truncatedAddress }}</span>
+          <!-- Wallet Info Panel -->
+          <div v-if="isConnected && address" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Wallet</p>
+                <p class="text-sm font-mono text-cyan-400">{{ truncatedAddress }}</p>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Current Balance:</span>
-                <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ vaultBTCBalance }} vaultBTC</span>
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Balance</p>
+                <p class="text-sm font-semibold text-white">{{ vaultBTCBalance }} <span class="text-cyan-400">vaultBTC</span></p>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Remaining Daily:</span>
-                <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ faucetInfo.remainingDaily }} vaultBTC</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Daily Remaining</p>
+                <p class="text-sm font-semibold text-emerald-400">{{ faucetInfo.remainingDaily }} vaultBTC</p>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Remaining Lifetime:</span>
-                <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ faucetInfo.remainingLifetime }} vaultBTC</span>
-              </div>
-              <div v-if="faucetInfo.cooldownRemaining >= 0.1" class="flex items-center justify-between pt-2 border-t border-emerald-200 dark:border-emerald-800">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Cooldown:</span>
-                <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">{{ formatCooldown(faucetInfo.cooldownRemaining) }}</span>
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Lifetime Remaining</p>
+                <p class="text-sm font-semibold text-emerald-400">{{ faucetInfo.remainingLifetime }} vaultBTC</p>
               </div>
             </div>
 
-            <UiButton
-              @click="handleMint"
-              :loading="loading"
-              :disabled="!isConnected || loading || !canMint || !faucetInfo.canMint"
-              class="w-full"
-              size="lg"
-            >
-              <Icon name="mdi:water" class="mr-2" />
-              {{ loading ? 'Minting...' : (faucetInfo.cooldownRemaining >= 0.1 ? 'Cooldown Active' : 'Request vaultBTC') }}
-            </UiButton>
+            <div v-if="faucetInfo.cooldownRemaining >= 0.1" class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:timer-sand" class="text-amber-400" />
+                  <span class="text-sm text-amber-400">Cooldown Active</span>
+              </div>
+                <span class="text-sm font-semibold text-amber-400">{{ formatCooldown(faucetInfo.cooldownRemaining) }}</span>
+              </div>
+              </div>
+            </div>
 
-            <p v-if="!isConnected" class="text-sm text-center text-gray-500 dark:text-gray-400">
-              Please connect your wallet to request tokens
+          <!-- Mint Button -->
+          <button
+              @click="handleMint"
+              :disabled="!isConnected || loading || !canMint || !faucetInfo.canMint"
+            class="group/btn relative w-full py-4 px-6 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 transition-all duration-300"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+            <div class="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            
+            <span class="relative flex items-center justify-center gap-2">
+              <Icon v-if="loading" name="mdi:loading" class="animate-spin" />
+              <Icon v-else name="mdi:water" />
+              {{ loading ? 'Minting...' : (faucetInfo.cooldownRemaining >= 0.1 ? 'Cooldown Active' : 'Request vaultBTC') }}
+            </span>
+          </button>
+
+          <p v-if="!isConnected" class="text-sm text-slate-500 text-center py-3 px-4 rounded-xl bg-slate-800/30 border border-slate-700/30">
+            <Icon name="mdi:wallet-outline" class="mr-1" />
+            Connect your wallet to request tokens
             </p>
 
-            <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+          <!-- Error/Success Messages -->
+          <div v-if="error" class="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <p class="text-sm text-red-400 flex items-center gap-2">
+              <Icon name="mdi:alert-circle" />
+              {{ error }}
+            </p>
             </div>
 
-            <div v-if="success" class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p class="text-sm text-green-600 dark:text-green-400">
-                ✅ Successfully minted {{ mintedAmount }} vaultBTC! 
-                <NuxtLink to="/vault" class="underline font-semibold">Go to Vault</NuxtLink>
+          <div v-if="success" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <p class="text-sm text-emerald-400 flex items-center gap-2">
+              <Icon name="mdi:check-circle" />
+              Successfully minted {{ mintedAmount }} vaultBTC! 
+              <NuxtLink to="/vault" class="underline font-semibold hover:text-emerald-300">Go to Vault →</NuxtLink>
               </p>
-            </div>
           </div>
-        </UiCard>
+        </div>
+      </div>
 
-        <!-- Info Section -->
-        <div class="space-y-4">
-          <UiCard>
-            <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-              <Icon name="mdi:information" class="inline mr-2 text-emerald-400" />
-              About the Faucet
-            </h3>
-            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li>• This faucet is for <strong>testnet only</strong> - tokens have no real value</li>
-              <li>• You can request vaultBTC tokens to test the vault functionality</li>
-              <li>• Use these tokens to deposit into the AI Vault and earn yield</li>
-              <li>• <strong>Max per request:</strong> 1000 vaultBTC</li>
-              <li>• <strong>Daily limit:</strong> 2000 vaultBTC per wallet</li>
-              <li>• <strong>Lifetime limit:</strong> 5000 vaultBTC per wallet</li>
-              <li>• <strong>Cooldown:</strong> 24 hours between requests</li>
+      <!-- Info Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-6 transition-all duration-300 hover:border-slate-600/50">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/20 ring-1 ring-blue-500/30">
+              <Icon name="mdi:information" class="text-xl text-blue-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-white">About the Faucet</h3>
+          </div>
+          <ul class="space-y-2 text-sm text-slate-400">
+            <li class="flex items-start gap-2">
+              <Icon name="mdi:circle-small" class="text-slate-600 mt-0.5" />
+              <span><strong class="text-slate-300">Testnet only</strong> - tokens have no real value</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <Icon name="mdi:circle-small" class="text-slate-600 mt-0.5" />
+              <span><strong class="text-slate-300">Max per request:</strong> 1000 vaultBTC</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <Icon name="mdi:circle-small" class="text-slate-600 mt-0.5" />
+              <span><strong class="text-slate-300">Daily limit:</strong> 2000 vaultBTC</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <Icon name="mdi:circle-small" class="text-slate-600 mt-0.5" />
+              <span><strong class="text-slate-300">Lifetime limit:</strong> 5000 vaultBTC</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <Icon name="mdi:circle-small" class="text-slate-600 mt-0.5" />
+              <span><strong class="text-slate-300">Cooldown:</strong> 24 hours between requests</span>
+            </li>
             </ul>
-          </UiCard>
+        </div>
 
-          <UiCard>
-            <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-              <Icon name="mdi:lightbulb" class="inline mr-2 text-emerald-400" />
-              Quick Start
-            </h3>
-            <ol class="space-y-2 text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside">
-              <li>Connect your wallet (MetaMask, WalletConnect, etc.)</li>
-              <li>Request vaultBTC tokens from this faucet</li>
-              <li>Go to the <NuxtLink to="/vault" class="text-emerald-400 hover:text-emerald-300 underline">Vault</NuxtLink> page</li>
-              <li>Deposit your vaultBTC and start earning yield!</li>
+        <div class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-6 transition-all duration-300 hover:border-slate-600/50">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/30">
+              <Icon name="mdi:rocket-launch" class="text-xl text-emerald-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-white">Quick Start</h3>
+          </div>
+          <ol class="space-y-3 text-sm text-slate-400">
+            <li class="flex items-start gap-3">
+              <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex-shrink-0">1</span>
+              <span>Connect your wallet (MetaMask, WalletConnect, etc.)</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex-shrink-0">2</span>
+              <span>Request vaultBTC tokens from this faucet</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex-shrink-0">3</span>
+              <span>Go to the <NuxtLink to="/vault" class="text-emerald-400 hover:text-emerald-300 underline">Vault</NuxtLink> page</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex-shrink-0">4</span>
+              <span>Deposit your vaultBTC and start earning yield!</span>
+            </li>
             </ol>
-          </UiCard>
         </div>
       </div>
     </div>
@@ -162,6 +216,7 @@
 <script setup lang="ts">
 import { useAppKitAccount } from "@reown/appkit/vue";
 
+const { $toast } = useNuxtApp()
 const accountData = useAppKitAccount();
 const isConnected = computed(() => accountData.value?.isConnected)
 const address = computed(() => accountData.value?.address)
@@ -192,17 +247,15 @@ const canMint = computed(() => {
   const amountNum = parseFloat(amount)
   
   if (!amount || amountNum <= 0) return false
-  if (amountNum > 1000) return false // Max per request
+  if (amountNum > 1000) return false
   if (amountNum > parseFloat(faucetInfo.value.remainingDaily)) return false
   if (amountNum > parseFloat(faucetInfo.value.remainingLifetime)) return false
-  // Use same threshold as formatCooldown (0.1 seconds) to determine if cooldown is active
   if (faucetInfo.value.cooldownRemaining >= 0.1) return false
     
   return true
 })
 
 const formatCooldown = (seconds: number): string => {
-  // Handle very small numbers (essentially 0) or invalid values
   if (!seconds || seconds < 0.1 || isNaN(seconds) || !isFinite(seconds)) {
     return 'Ready'
   }
@@ -222,7 +275,7 @@ const formatCooldown = (seconds: number): string => {
 
 const handleMint = async () => {
   if (!isConnected.value || !address.value) {
-    error.value = 'Please connect your wallet first'
+    $toast.warning('Please connect your wallet first')
     return
   }
 
@@ -230,28 +283,36 @@ const handleMint = async () => {
   const amountNum = parseFloat(amount)
   
   if (!amount || amountNum <= 0) {
-    error.value = 'Please enter a valid amount'
+    $toast.warning('Please enter a valid amount')
     return
   }
   
   if (amountNum > 1000) {
-    error.value = 'Maximum 1000 vaultBTC per request'
+    $toast.error('Maximum 1000 vaultBTC per request')
     return
   }
   
   if (amountNum > parseFloat(faucetInfo.value.remainingDaily)) {
-    error.value = `Daily limit exceeded. Remaining: ${faucetInfo.value.remainingDaily} vaultBTC`
+    $toast.error({
+      title: 'Daily Limit Exceeded',
+      message: `Remaining: ${faucetInfo.value.remainingDaily} vaultBTC`
+    })
     return
   }
   
   if (amountNum > parseFloat(faucetInfo.value.remainingLifetime)) {
-    error.value = `Lifetime limit exceeded. Remaining: ${faucetInfo.value.remainingLifetime} vaultBTC`
+    $toast.error({
+      title: 'Lifetime Limit Exceeded',
+      message: `Remaining: ${faucetInfo.value.remainingLifetime} vaultBTC`
+    })
     return
   }
   
-  // Use same threshold (0.1 seconds) as formatCooldown to determine if cooldown is active
   if (faucetInfo.value.cooldownRemaining >= 0.1) {
-    error.value = `Cooldown active. Please wait ${formatCooldown(faucetInfo.value.cooldownRemaining)}`
+    $toast.warning({
+      title: 'Cooldown Active',
+      message: `Please wait ${formatCooldown(faucetInfo.value.cooldownRemaining)}`
+    })
     return
   }
 
@@ -264,33 +325,34 @@ const handleMint = async () => {
     mintedAmount.value = amount
     success.value = true
     
-    // Refresh balance and faucet info
+    $toast.success({
+      title: 'Tokens Minted!',
+      message: `Successfully minted ${amount} vaultBTC`
+    })
+    
     vaultBTCBalance.value = await getVaultBTCBalance(address.value)
     faucetInfo.value = await getFaucetInfo(address.value)
     
-    // Clear form
     customAmount.value = ''
     selectedAmount.value = '200'
   } catch (err: any) {
-    error.value = err.message || 'Failed to mint tokens'
+    $toast.error({
+      title: 'Mint Failed',
+      message: err.message || 'Failed to mint tokens'
+    })
     console.error('Mint error:', err)
   } finally {
     loading.value = false
   }
 }
 
-// Load balance and faucet info when wallet connects
 watch([isConnected, address], async ([connected, addr]) => {
   if (connected && addr) {
-    console.log("faucetInfo", faucetInfo.value)
-    console.log("connected", connected)
-    console.log("addr", addr)
     vaultBTCBalance.value = await getVaultBTCBalance(addr)
     faucetInfo.value = await getFaucetInfo(addr)
   }
 }, { immediate: true })
 
-// Refresh faucet info periodically to update cooldown
 let cooldownInterval: NodeJS.Timeout | null = null
 
 watch([isConnected, address], ([connected, addr]) => {
@@ -302,7 +364,7 @@ watch([isConnected, address], ([connected, addr]) => {
   if (connected && addr) {
     cooldownInterval = setInterval(async () => {
       faucetInfo.value = await getFaucetInfo(addr)
-    }, 1000) // Update every second
+    }, 1000)
   }
 })
 
@@ -311,13 +373,4 @@ onUnmounted(() => {
     clearInterval(cooldownInterval)
   }
 })
-
-onMounted(() => {
-  console.log('Faucet mounted')
-  console.log("isConnected", !isConnected.value)
-  console.log("loading", loading.value)
-  console.log("canMint", canMint.value)
-  console.log("faucetInfo.canMint", faucetInfo.value.canMint)
-})
 </script>
-

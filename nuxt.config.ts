@@ -9,8 +9,12 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/icon',
     '@nuxt/image',
-    '@wagmi/vue/nuxt'
+    '@wagmi/vue/nuxt',
+    '@cssninja/nuxt-toaster'
   ],
+  toaster: {
+    installPlugin: false // We'll create a custom plugin
+  },
   app: {
     head: {
       title: 'Bitcoin Vault AI - Smart DeFi for Bitcoin',
@@ -20,7 +24,8 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    // anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
     subgraphApiKey: process.env.SUBGRAPH_API_KEY,
     public: {
       ethereumRpcUrl: process.env.ETHEREUM_RPC_URL,

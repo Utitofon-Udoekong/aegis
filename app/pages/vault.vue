@@ -34,8 +34,17 @@
 
     <!-- Main Content -->
       <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-      <!-- Stats -->
+      <!-- Stats with loading state -->
+      <div v-if="isLoading && !hasLoadedOnce" class="mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div v-for="i in 4" :key="i" class="rounded-2xl bg-slate-900 border border-slate-700/50 p-6 animate-pulse">
+            <div class="h-4 w-20 bg-slate-700 rounded mb-4"></div>
+            <div class="h-8 w-32 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+      </div>
       <VaultStats
+        v-else
         :balance="balance"
         :apy="apy"
         :rewards="userRewards"
@@ -70,31 +79,38 @@
 
 <script setup lang="ts">
 import { useAppKitAccount } from "@reown/appkit/vue";
+import { useVaultStore } from '~~/stores/vault'
 import type { Transaction } from '~~/shared/types/vault'
 
 const accountData = useAppKitAccount();
 const isConnected = computed(() => accountData.value?.isConnected)
 const address = computed(() => accountData.value?.address)
+const vaultStore = useVaultStore()
 
 // Use composables directly
 const { getBalance, calculateYield, getTotalDeposits, getDepositInfo, getYieldReserves, getAPY } = useVault()
-const { fetchTransactions } = useTransactions()
+const { fetchTransactions, clearTransactionCache } = useTransactions()
 
 // Reactive state
 const balance = ref('0')
 const userRewards = ref('0')
 const apy = ref(5.0)
 const transactions = ref<Transaction[]>([])
-const isLoading = ref(false)
+const isLoading = ref(true) // Start as true to show loading on initial render
 const depositTime = ref(0)
 const lastClaimTime = ref(0)
 const yieldReserves = ref('0')
+const hasLoadedOnce = ref(false) // Track if we've loaded data at least once
 
-// Formatted values
-const formattedBalance = computed(() => parseFloat(balance.value || '0').toFixed(4))
-const formattedRewards = computed(() => parseFloat(userRewards.value || '0').toFixed(4))
+// Sync local state with Pinia store
+const syncToStore = () => {
+  vaultStore.balance = balance.value
+  vaultStore.userRewards = userRewards.value
+  vaultStore.apy = apy.value
+  vaultStore.transactions = transactions.value
+}
 
-// Fetch all vault data
+// Fetch all vault data - optimized for speed
 const fetchVaultData = async (userAddress: string) => {
   if (!userAddress) {
     balance.value = '0'
@@ -102,35 +118,72 @@ const fetchVaultData = async (userAddress: string) => {
     transactions.value = []
     depositTime.value = 0
     lastClaimTime.value = 0
+    vaultStore.reset()
+    isLoading.value = false
     return
   }
 
   isLoading.value = true
+  const startTime = Date.now()
+  console.log('Fetching vault data for:', userAddress)
+  
   try {
-    const [depositInfo, reservesResult, apyResult, transactionsResult] = await Promise.all([
-      getDepositInfo(userAddress).catch(() => ({ amount: '0', depositTime: 0, lastClaimTime: 0, pendingYield: '0' })),
+    // Fetch critical data in parallel (fast RPC calls)
+    const [depositInfoResult, reservesResult, apyResult] = await Promise.all([
+      getDepositInfo(userAddress).catch(async () => {
+        // Fallback for old contract
+        const [bal, rewards] = await Promise.all([
+          getBalance(userAddress).catch(() => '0'),
+          calculateYield(userAddress).catch(() => '0'),
+        ])
+        return { amount: bal, depositTime: 0, lastClaimTime: 0, pendingYield: rewards }
+      }),
       getYieldReserves().catch(() => '0'),
       getAPY().catch(() => 500),
-      fetchTransactions(userAddress).catch(() => [] as Transaction[]),
     ])
 
-    balance.value = depositInfo.amount
-    userRewards.value = depositInfo.pendingYield
-    depositTime.value = depositInfo.depositTime
-    lastClaimTime.value = depositInfo.lastClaimTime
+    console.log('Core data loaded in', Date.now() - startTime, 'ms')
+
+    // Update UI immediately with core data
+    balance.value = depositInfoResult.amount
+    userRewards.value = depositInfoResult.pendingYield
+    depositTime.value = depositInfoResult.depositTime
+    lastClaimTime.value = depositInfoResult.lastClaimTime
     yieldReserves.value = reservesResult
-    apy.value = apyResult / 100 // Convert from basis points to percentage
-    transactions.value = transactionsResult
+    apy.value = apyResult / 100
+    
+    // Mark as loaded so UI shows
+    isLoading.value = false
+    hasLoadedOnce.value = true
+    
+    // Sync to store for other pages
+    syncToStore()
+
+    // Fetch transactions in background (slow - uses public RPCs)
+    fetchTransactions(userAddress)
+      .then((txs) => {
+        console.log('Transactions loaded in', Date.now() - startTime, 'ms:', txs.length)
+        transactions.value = txs
+        syncToStore()
+      })
+      .catch((e) => {
+        console.error('Error fetching transactions:', e)
+      })
+
   } catch (error) {
     console.error('Error fetching vault data:', error)
-  } finally {
     isLoading.value = false
+    hasLoadedOnce.value = true
   }
 }
 
 const handleDeposit = async () => {
   const addr = address.value
   if (addr) {
+    // Clear cache to force fresh fetch
+    clearTransactionCache(addr)
+    // Add a small delay to allow blockchain to update
+    await new Promise(resolve => setTimeout(resolve, 3000))
     await fetchVaultData(addr)
   }
 }
@@ -138,6 +191,8 @@ const handleDeposit = async () => {
 const handleWithdraw = async () => {
   const addr = address.value
   if (addr) {
+    clearTransactionCache(addr)
+    await new Promise(resolve => setTimeout(resolve, 3000))
     await fetchVaultData(addr)
   }
 }
@@ -145,6 +200,8 @@ const handleWithdraw = async () => {
 const handleYieldClaimed = async () => {
   const addr = address.value
   if (addr) {
+    clearTransactionCache(addr)
+    await new Promise(resolve => setTimeout(resolve, 3000))
     await fetchVaultData(addr)
   }
 }
@@ -159,6 +216,7 @@ watch([address, isConnected], async ([newAddress, connected]) => {
     transactions.value = []
     depositTime.value = 0
     lastClaimTime.value = 0
+    vaultStore.reset()
   }
 }, { immediate: true })
 </script>

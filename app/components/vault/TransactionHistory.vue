@@ -1,60 +1,80 @@
 <template>
-  <UiCard title="Transaction History">
-    <div v-if="transactions.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-      <Icon name="mdi:history" class="text-4xl mb-2 opacity-50" />
-      <p>No transactions yet</p>
+  <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800/50 via-slate-900 to-slate-900 border border-slate-700/50 p-6 transition-all duration-300 hover:border-slate-600/50">
+    <!-- Background glow -->
+    <div class="absolute bottom-0 left-0 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+    
+    <div class="relative">
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-700/50 ring-1 ring-slate-600/50">
+          <Icon name="mdi:history" class="text-xl text-slate-400" />
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-white">Transaction History</h3>
+          <p class="text-xs text-slate-500">Recent vault activity</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="transactions.length === 0" class="text-center py-12">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/50 flex items-center justify-center">
+          <Icon name="mdi:swap-horizontal" class="text-3xl text-slate-600" />
+        </div>
+        <p class="text-slate-500">No transactions yet</p>
+        <p class="text-xs text-slate-600 mt-1">Your deposit and withdrawal history will appear here</p>
     </div>
-    <div v-else class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-600">
-            <th class="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-semibold">Type</th>
-            <th class="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-semibold">Amount</th>
-            <th class="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-semibold">Date</th>
-            <th class="text-left py-3 px-4 text-gray-700 dark:text-gray-300 font-semibold">Hash</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
+
+      <!-- Transaction List -->
+      <div v-else class="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+        <div
             v-for="tx in transactions"
             :key="tx.hash"
-            class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          class="group/item flex items-center gap-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 hover:bg-slate-800/50 hover:border-slate-600/50 transition-all duration-200"
           >
-            <td class="py-3 px-4">
-              <span
-                :class="[
-                  'inline-flex items-center gap-1 px-2 py-1 rounded text-sm font-medium',
+          <!-- Type Icon -->
+          <div :class="[
+            'flex items-center justify-center w-10 h-10 rounded-xl ring-1',
                   tx.type === 'deposit'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400',
-                ]"
-              >
+              ? 'bg-emerald-500/20 ring-emerald-500/30' 
+              : 'bg-amber-500/20 ring-amber-500/30'
+          ]">
                 <Icon
-                  :name="tx.type === 'deposit' ? 'mdi:arrow-down' : 'mdi:arrow-up'"
+              :name="tx.type === 'deposit' ? 'mdi:arrow-down-bold' : 'mdi:arrow-up-bold'"
+              :class="tx.type === 'deposit' ? 'text-emerald-400' : 'text-amber-400'"
                 />
+          </div>
+
+          <!-- Details -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span :class="[
+                'text-sm font-medium',
+                tx.type === 'deposit' ? 'text-emerald-400' : 'text-amber-400'
+              ]">
                 {{ tx.type === 'deposit' ? 'Deposit' : 'Withdraw' }}
               </span>
-            </td>
-            <td class="py-3 px-4 text-gray-900 dark:text-gray-100">{{ parseFloat(tx.amount).toFixed(4) }} vaultBTC</td>
-            <td class="py-3 px-4 text-gray-600 dark:text-gray-400">
+              <span class="text-sm text-white font-medium">{{ parseFloat(tx.amount).toFixed(4) }}</span>
+              <span class="text-xs text-slate-500">vaultBTC</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
               {{ new Date(tx.timestamp).toLocaleString() }}
-            </td>
-            <td class="py-3 px-4">
+            </p>
+          </div>
+
+          <!-- Link -->
               <a
                 :href="`https://sepolia.etherscan.io/tx/${tx.hash}`"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-emerald-400 hover:text-emerald-300 text-sm flex items-center gap-1"
+            class="flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-400 transition-colors"
               >
-                {{ tx.hash.slice(0, 10) }}...
+            {{ tx.hash.slice(0, 6) }}...{{ tx.hash.slice(-4) }}
                 <Icon name="mdi:open-in-new" class="text-xs" />
               </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
-  </UiCard>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -67,3 +87,21 @@ interface Props {
 defineProps<Props>()
 </script>
 
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+</style>

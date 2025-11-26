@@ -59,8 +59,8 @@ export const useVault = () => {
     console.log('Spender (vault):', vaultContractAddress)
     console.log('Approve amount: unlimited (MAX_UINT256)')
 
-    // Estimate gas and set limit with buffer
-    let gasLimit = 2000000n // Default fallback (2M - higher to prevent drops)
+    // Estimate gas - approve is a simple operation, ~50k gas
+    let gasLimit = 100000n // Reasonable default for approve
     try {
       const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
         account: accountData.value?.address as Address,
@@ -72,10 +72,10 @@ export const useVault = () => {
         }),
       })
       console.log('Gas estimate for approve:', estimatedGas.toString())
-      // Add 100% buffer (double) to prevent drops, but cap at 15M
-      gasLimit = estimatedGas * 2n
-      if (gasLimit > 15000000n) gasLimit = 15000000n
-      if (gasLimit < 2000000n) gasLimit = 2000000n // Higher minimum
+      // Add 50% buffer
+      gasLimit = (estimatedGas * 150n) / 100n
+      if (gasLimit < 50000n) gasLimit = 50000n
+      if (gasLimit > 200000n) gasLimit = 200000n
       console.log('Final gas limit for approve:', gasLimit.toString())
     } catch (error: any) {
       // Use default if estimation fails
@@ -207,8 +207,8 @@ export const useVault = () => {
     
     // Then deposit
     try {
-      // Estimate gas and set limit with buffer
-      let gasLimit = 10000000n // Default fallback (10M - higher to prevent drops)
+      // Estimate gas - deposit involves token transfer + state updates, ~150k-300k gas
+      let gasLimit = 300000n // Reasonable default for deposit
       try {
         const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
           account: addressValue as Address,
@@ -220,10 +220,10 @@ export const useVault = () => {
           }),
         })
         console.log('Gas estimate for deposit:', estimatedGas.toString())
-        // Add 100% buffer (double) to prevent drops, but cap at 15M (below block limit of 16,777,216)
-        gasLimit = estimatedGas * 2n
-        if (gasLimit > 15000000n) gasLimit = 15000000n
-        if (gasLimit < 10000000n) gasLimit = 10000000n // Higher minimum
+        // Add 50% buffer
+        gasLimit = (estimatedGas * 150n) / 100n
+        if (gasLimit < 150000n) gasLimit = 150000n
+        if (gasLimit > 500000n) gasLimit = 500000n
         console.log('Final gas limit for deposit:', gasLimit.toString())
       } catch (error: any) {
         // Use default if estimation fails
@@ -232,11 +232,11 @@ export const useVault = () => {
 
       const hash = await writeContract(wagmiAdapter.wagmiConfig, {
         address: vaultContractAddress as Address,
-        abi: AIVaultABI,
-        functionName: 'deposit',
+      abi: AIVaultABI,
+      functionName: 'deposit',
         args: [amountInWei],
         gas: gasLimit,
-      })
+    })
     const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
     } catch (error: any) {
@@ -272,8 +272,8 @@ export const useVault = () => {
     // Convert human-readable amount to wei (18 decimals)
     const amountInWei = parseUnits(amount, 18)
     
-    // Estimate gas and set limit with buffer
-    let gasLimit = 10000000n // Default fallback (10M - higher to prevent drops)
+    // Estimate gas - withdraw involves token transfer + yield calculation, ~150k-300k gas
+    let gasLimit = 300000n // Reasonable default for withdraw
     const addressValue = accountData.value?.address
     if (addressValue) {
       try {
@@ -287,10 +287,10 @@ export const useVault = () => {
           }),
         })
         console.log('Gas estimate for withdraw:', estimatedGas.toString())
-        // Add 100% buffer (double) to prevent drops, but cap at 15M
-        gasLimit = estimatedGas * 2n
-        if (gasLimit > 15000000n) gasLimit = 15000000n
-        if (gasLimit < 10000000n) gasLimit = 10000000n // Higher minimum
+        // Add 50% buffer
+        gasLimit = (estimatedGas * 150n) / 100n
+        if (gasLimit < 150000n) gasLimit = 150000n
+        if (gasLimit > 500000n) gasLimit = 500000n
         console.log('Final gas limit for withdraw:', gasLimit.toString())
       } catch (error: any) {
         // Use default if estimation fails
@@ -387,8 +387,8 @@ export const useVault = () => {
       throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
     }
     
-    // Estimate gas
-    let gasLimit = 5000000n
+    // Estimate gas - claimYield involves yield calculation + transfer, ~100k-200k gas
+    let gasLimit = 200000n // Reasonable default
     try {
       const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
         account: addressValue as Address,
@@ -399,9 +399,10 @@ export const useVault = () => {
           args: [],
         }),
       })
-      gasLimit = estimatedGas * 2n
-      if (gasLimit > 15000000n) gasLimit = 15000000n
-      if (gasLimit < 2000000n) gasLimit = 2000000n
+      // Add 50% buffer
+      gasLimit = (estimatedGas * 150n) / 100n
+      if (gasLimit < 100000n) gasLimit = 100000n
+      if (gasLimit > 400000n) gasLimit = 400000n
     } catch (error: any) {
       console.warn('Gas estimation failed for claimYield, using default:', error.message)
     }
@@ -482,7 +483,7 @@ export const useVault = () => {
   /**
    * Fund yield reserves (typically done by owner/admin)
    */
-  const fundYieldReserves = async (amount: string) => {
+  const fundYieldReserves = async (amount: string | number) => {
     const vaultContractAddress = config.public.vaultContractAddress as string
     const vaultBtcAddress = config.public.vaultBtcAddress as string
     const addressValue = accountData.value?.address
@@ -492,7 +493,7 @@ export const useVault = () => {
       throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
     }
     
-    const amountInWei = parseUnits(amount, 18)
+    const amountInWei = parseUnits(String(amount), 18)
     
     // First approve the vault to spend tokens
     const currentAllowance = await checkAllowance(addressValue)
@@ -507,8 +508,8 @@ export const useVault = () => {
       await new Promise(resolve => setTimeout(resolve, 2000))
     }
     
-    // Estimate gas
-    let gasLimit = 5000000n
+    // Estimate gas - fundYieldReserves is a simple transfer, needs ~100k gas
+    let gasLimit = 200000n // Reasonable default for token transfer
     try {
       const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
         account: addressValue as Address,
@@ -519,9 +520,10 @@ export const useVault = () => {
           args: [amountInWei],
         }),
       })
-      gasLimit = estimatedGas * 2n
-      if (gasLimit > 15000000n) gasLimit = 15000000n
-      if (gasLimit < 2000000n) gasLimit = 2000000n
+      // Add 50% buffer but keep it reasonable
+      gasLimit = (estimatedGas * 150n) / 100n
+      if (gasLimit < 100000n) gasLimit = 100000n
+      if (gasLimit > 500000n) gasLimit = 500000n
     } catch (error: any) {
       console.warn('Gas estimation failed for fundYieldReserves, using default:', error.message)
     }
@@ -581,6 +583,28 @@ export const useVault = () => {
     }
   }
   
+  /**
+   * Get the contract owner address
+   */
+  const getOwner = async (): Promise<string> => {
+    const vaultContractAddress = config.public.vaultContractAddress as string
+    
+    if (!vaultContractAddress || vaultContractAddress.trim() === '') {
+      return ''
+    }
+    
+    try {
+      const owner = await readContract(wagmiAdapter.wagmiConfig, {
+        address: vaultContractAddress as Address,
+        abi: AIVaultABI,
+        functionName: 'owner',
+      })
+      return owner as string
+    } catch {
+      return ''
+    }
+  }
+  
   const mintVaultBTC = async (amount: string): Promise<any> => {
     const vaultBtcAddress = config.public.vaultBtcAddress as string
     
@@ -594,8 +618,8 @@ export const useVault = () => {
     // Convert human-readable amount to wei (18 decimals)
     const amountInWei = parseUnits(amount, 18)
     
-    // Estimate gas and set limit with buffer
-    let gasLimit = 10000000n // Default fallback (10M - higher to prevent drops)
+    // Estimate gas - mint is a simple token operation, ~100k-200k gas
+    let gasLimit = 200000n // Reasonable default for mint
     try {
       const estimatedGas = await estimateGas(wagmiAdapter.wagmiConfig, {
         account: accountData.value.address as Address,
@@ -607,10 +631,10 @@ export const useVault = () => {
         }),
       })
       console.log('Gas estimate for mint:', estimatedGas.toString())
-      // Add 100% buffer (double) to prevent drops, but cap at 15M
-      gasLimit = estimatedGas * 2n
-      if (gasLimit > 15000000n) gasLimit = 15000000n
-      if (gasLimit < 10000000n) gasLimit = 10000000n // Higher minimum
+      // Add 50% buffer
+      gasLimit = (estimatedGas * 150n) / 100n
+      if (gasLimit < 100000n) gasLimit = 100000n
+      if (gasLimit > 400000n) gasLimit = 400000n
       console.log('Final gas limit for mint:', gasLimit.toString())
     } catch (error: any) {
       // Use default if estimation fails
@@ -620,11 +644,11 @@ export const useVault = () => {
     try {
       const hash = await writeContract(wagmiAdapter.wagmiConfig, {
         address: vaultBtcAddress as Address,
-        abi: VaultBTCABI,
-        functionName: 'mint',
+      abi: VaultBTCABI,
+      functionName: 'mint',
         args: [accountData.value.address as Address, amountInWei],
         gas: gasLimit,
-      })
+    })
     const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
     } catch (error: any) {
@@ -706,5 +730,6 @@ export const useVault = () => {
     fundYieldReserves,
     getMinDepositTime,
     getAPY,
+    getOwner,
   }
 }

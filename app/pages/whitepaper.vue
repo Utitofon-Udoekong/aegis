@@ -1,19 +1,20 @@
 <template>
-  <div class="min-h-screen bg-slate-950 dark:bg-slate-950 relative overflow-hidden">
+  <div class="min-h-screen bg-slate-950 relative overflow-hidden">
     <!-- Animated background elements -->
     <div class="absolute inset-0 bg-grid-pattern"></div>
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
 
     <div class="relative container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
       <!-- Header -->
-      <header class="mb-8">
+      <header class="mb-10">
         <div class="flex items-center justify-between">
           <NuxtLink to="/" class="flex items-center gap-3">
             <Logo />
           </NuxtLink>
           <NuxtLink to="/">
-            <UiButton variant="outline" size="sm" class="border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10">
+            <UiButton variant="outline" size="sm">
               <Icon name="mdi:arrow-left" class="mr-2" />
               Back
             </UiButton>
@@ -21,189 +22,235 @@
         </div>
       </header>
 
-      <!-- Whitepaper Content -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12 mb-8">
-        <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white">
-          Bitcoin Vault AI
-        </h1>
-        <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
-          AI-Optimized DeFi Vaults for Bitcoin
-        </p>
+      <!-- Whitepaper Hero -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-medium">
+          <Icon name="mdi:file-document" />
+          Technical Documentation
+        </div>
+        <h1 class="text-5xl font-bold mb-4 text-white">Bitcoin Vault AI</h1>
+        <p class="text-xl text-slate-400">AI-Optimized DeFi Vaults for Bitcoin</p>
+      </div>
 
-        <!-- One-Page Idea Summary -->
-        <section class="mb-12">
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-            1. Idea Summary
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              <strong>Bitcoin Vault AI</strong> is an AI-enhanced DeFi vault platform designed to optimize yield strategies for Bitcoin-backed assets. 
+      <!-- Main Content -->
+      <div class="space-y-8">
+        <!-- Section 1: Idea Summary -->
+        <section class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-8 transition-all duration-300 hover:border-slate-600/50">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/30">
+                <span class="text-lg font-bold text-emerald-400">1</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Idea Summary</h2>
+            </div>
+            
+            <div class="space-y-4 text-slate-300">
+              <p>
+                <strong class="text-white">Bitcoin Vault AI</strong> is an AI-enhanced DeFi vault platform designed to optimize yield strategies for Bitcoin-backed assets. 
               The platform combines smart contract security with artificial intelligence to provide personalized, risk-adjusted investment recommendations.
             </p>
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              <strong>Core Concept:</strong> Users deposit vaultBTC (representing Bitcoin positions) into a secure vault contract. 
+              <p>
+                <strong class="text-emerald-400">Core Concept:</strong> Users deposit vaultBTC (representing Bitcoin positions) into a secure vault contract. 
               An AI engine analyzes market conditions, user risk profiles, and DeFi opportunities to generate optimized yield strategies. 
-              The platform tracks performance, calculates yields, and provides real-time analytics.
             </p>
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              <strong>Novelty:</strong> This is the first DeFi vault concept specifically designed for Bitcoin trustless vaults, 
-              combining AI-powered strategy generation with secure smart contract infrastructure. The architecture is built to seamlessly 
-              port to Bitcoin trustless vaults when the technology matures.
+              <p>
+                <strong class="text-emerald-400">Novelty:</strong> This is the first DeFi vault concept specifically designed for Bitcoin trustless vaults, 
+                combining AI-powered strategy generation with secure smart contract infrastructure.
             </p>
-            <p class="text-gray-700 dark:text-gray-300">
-              <strong>Impact:</strong> Enables Bitcoin holders to participate in DeFi yield opportunities with AI-guided risk management, 
-              making DeFi more accessible and optimized for the largest cryptocurrency by market cap.
+              <p>
+                <strong class="text-emerald-400">Impact:</strong> Enables Bitcoin holders to participate in DeFi yield opportunities with AI-guided risk management.
             </p>
+            </div>
           </div>
         </section>
 
-        <!-- Technical Notes -->
-        <section class="mb-12">
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-            2. Technical Architecture
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Smart Contracts</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li><strong>AIVault.sol:</strong> Main vault contract handling deposits, withdrawals, and yield calculations. Uses OpenZeppelin's ReentrancyGuard, Pausable, and Ownable patterns.</li>
-              <li><strong>VaultBTC.sol:</strong> ERC20 token representing Bitcoin positions. In production, this would be minted by Bitcoin trustless vaults.</li>
-              <li><strong>Yield Calculation:</strong> Time-based APY calculation (currently 5% APY, configurable). Production version would track deposit timestamps for accurate yield.</li>
+        <!-- Section 2: Technical Architecture -->
+        <section class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-8 transition-all duration-300 hover:border-slate-600/50">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/20 ring-1 ring-blue-500/30">
+                <span class="text-lg font-bold text-blue-400">2</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Technical Architecture</h2>
+            </div>
+            
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Icon name="mdi:file-code" class="text-blue-400" />
+                  Smart Contracts
+                </h3>
+                <ul class="space-y-2 text-slate-300">
+                  <li class="flex items-start gap-2">
+                    <Icon name="mdi:check" class="text-emerald-400 mt-1 flex-shrink-0" />
+                    <span><strong class="text-white">AIVault.sol:</strong> Main vault contract with deposits, withdrawals, and time-based yield</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <Icon name="mdi:check" class="text-emerald-400 mt-1 flex-shrink-0" />
+                    <span><strong class="text-white">VaultBTC.sol:</strong> ERC20 token representing Bitcoin positions</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <Icon name="mdi:check" class="text-emerald-400 mt-1 flex-shrink-0" />
+                    <span><strong class="text-white">Yield System:</strong> 5% APY with 24-hour minimum hold, claimable separately</span>
+                  </li>
             </ul>
+              </div>
 
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Frontend Architecture</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li><strong>Framework:</strong> Nuxt 4 with Vue 3 Composition API</li>
-              <li><strong>Web3 Integration:</strong> Reown AppKit (WalletConnect) for multi-wallet support</li>
-              <li><strong>State Management:</strong> Pinia stores for vault state, wallet state, and AI conversations</li>
-              <li><strong>AI Integration:</strong> Anthropic Claude Sonnet 4 API for strategy generation</li>
-              <li><strong>Styling:</strong> TailwindCSS with custom dark theme</li>
-            </ul>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Key Features</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li>Deposit/withdraw vaultBTC with automatic yield calculation</li>
-              <li>AI-powered strategy recommendations (conservative, moderate, aggressive)</li>
-              <li>Real-time analytics dashboard (TVL, users, APY, rewards)</li>
-              <li>Transaction history tracking via blockchain events</li>
-              <li>Portfolio performance visualization</li>
-              <li>Interactive AI chat for strategy consultation</li>
-            </ul>
+              <div>
+                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Icon name="mdi:application-brackets" class="text-blue-400" />
+                  Frontend Architecture
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">Framework</p>
+                    <p class="text-sm text-white">Nuxt 4 + Vue 3</p>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">Web3</p>
+                    <p class="text-sm text-white">Reown AppKit</p>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">AI</p>
+                    <p class="text-sm text-white">Google Gemini</p>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">Styling</p>
+                    <p class="text-sm text-white">TailwindCSS</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- Security Considerations -->
-        <section class="mb-12">
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-            3. Security Considerations
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Smart Contract Security</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li><strong>ReentrancyGuard:</strong> All external calls are protected against reentrancy attacks using OpenZeppelin's ReentrancyGuard modifier</li>
-              <li><strong>SafeERC20:</strong> Uses SafeERC20 library for token transfers to handle non-standard ERC20 tokens safely</li>
-              <li><strong>Pausable:</strong> Contract can be paused by owner in case of emergency, with emergency withdraw functionality</li>
-              <li><strong>Access Control:</strong> Ownable pattern restricts critical functions to contract owner</li>
-              <li><strong>Input Validation:</strong> All user inputs are validated (amount > 0, sufficient balance checks)</li>
-              <li><strong>Immutable References:</strong> vaultBTC token address is immutable after deployment</li>
-            </ul>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Risk Mitigation</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li><strong>Emergency Pause:</strong> Owner can pause all operations if vulnerabilities are discovered</li>
-              <li><strong>Emergency Withdraw:</strong> Users can withdraw their funds even when contract is paused</li>
-              <li><strong>Yield Calculation:</strong> Simplified for demo; production would require timestamp tracking and more sophisticated yield mechanisms</li>
-              <li><strong>Frontend Security:</strong> All blockchain interactions require explicit user approval via wallet</li>
-              <li><strong>API Security:</strong> AI API keys stored server-side, never exposed to client</li>
-            </ul>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Known Limitations (Demo)</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li>Yield calculation is simplified (30-day fixed yield for demo purposes)</li>
-              <li>No timestamp tracking for accurate time-based yield calculation</li>
-              <li>VaultBTC is a mock token; production would integrate with actual Bitcoin trustless vaults</li>
-              <li>No multi-signature or timelock mechanisms (would be added for production)</li>
-            </ul>
+        <!-- Section 3: Security -->
+        <section class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-8 transition-all duration-300 hover:border-slate-600/50">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/20 ring-1 ring-amber-500/30">
+                <span class="text-lg font-bold text-amber-400">3</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Security Considerations</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <div class="flex items-center gap-2 mb-2">
+                  <Icon name="mdi:shield-check" class="text-emerald-400" />
+                  <span class="font-semibold text-white">ReentrancyGuard</span>
+                </div>
+                <p class="text-sm text-slate-400">Protection against reentrancy attacks</p>
+              </div>
+              <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <div class="flex items-center gap-2 mb-2">
+                  <Icon name="mdi:lock" class="text-emerald-400" />
+                  <span class="font-semibold text-white">SafeERC20</span>
+                </div>
+                <p class="text-sm text-slate-400">Safe token transfer handling</p>
+              </div>
+              <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <div class="flex items-center gap-2 mb-2">
+                  <Icon name="mdi:pause-circle" class="text-amber-400" />
+                  <span class="font-semibold text-white">Pausable</span>
+                </div>
+                <p class="text-sm text-slate-400">Emergency pause functionality</p>
+              </div>
+              <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <div class="flex items-center gap-2 mb-2">
+                  <Icon name="mdi:account-key" class="text-blue-400" />
+                  <span class="font-semibold text-white">Ownable</span>
+                </div>
+                <p class="text-sm text-slate-400">Access control for admin functions</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- Bitcoin Vault Portability -->
-        <section class="mb-12">
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-            4. Portability to Bitcoin Trustless Vaults
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              The architecture is specifically designed to be portable to Bitcoin trustless vaults when the technology becomes available. 
-              Here's how the system adapts:
-            </p>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Current Implementation (Ethereum)</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li>vaultBTC is an ERC20 token minted by a mock contract</li>
-              <li>Users deposit vaultBTC into AIVault contract</li>
-              <li>Yield is calculated and distributed in vaultBTC</li>
-            </ul>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Future Bitcoin Vault Integration</h3>
-            <ul class="list-disc pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li><strong>Token Minting:</strong> vaultBTC tokens would be minted by Bitcoin trustless vault contracts when users lock Bitcoin</li>
-              <li><strong>Metadata:</strong> vaultBTC tokens would include metadata about the underlying Bitcoin position (amount, lock time, etc.)</li>
-              <li><strong>Cross-Chain:</strong> The AIVault contract would remain on Ethereum, but vaultBTC could be bridged from Bitcoin vault chains</li>
-              <li><strong>Yield Sources:</strong> Yield would come from DeFi protocols on Ethereum, while the underlying Bitcoin remains secured in trustless vaults</li>
-              <li><strong>No Code Changes:</strong> The AIVault contract requires no modifications - it already works with any ERC20 token</li>
-            </ul>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white mt-6">Migration Path</h3>
-            <ol class="list-decimal pl-6 mb-4 text-gray-700 dark:text-gray-300 space-y-2">
-              <li>Bitcoin trustless vaults deploy and start minting vaultBTC tokens</li>
-              <li>vaultBTC tokens are bridged to Ethereum (or deployed on EVM-compatible chains)</li>
-              <li>Existing AIVault contract accepts vaultBTC from Bitcoin vaults (no changes needed)</li>
-              <li>AI strategy engine adapts to include Bitcoin-specific market data</li>
-              <li>Frontend updates to show Bitcoin vault metadata and cross-chain status</li>
+        <!-- Section 4: Bitcoin Portability -->
+        <section class="group relative overflow-hidden rounded-2xl bg-slate-900/80 border border-slate-700/50 p-8 transition-all duration-300 hover:border-slate-600/50">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-orange-500/20 ring-1 ring-orange-500/30">
+                <span class="text-lg font-bold text-orange-400">4</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Bitcoin Vault Portability</h2>
+            </div>
+            
+            <div class="space-y-4 text-slate-300">
+              <p>
+                The architecture is designed to be portable to Bitcoin trustless vaults when the technology matures.
+              </p>
+              
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <h4 class="font-semibold text-white mb-3">Migration Path</h4>
+                <ol class="space-y-2">
+                  <li class="flex items-start gap-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold flex-shrink-0">1</span>
+                    <span>Bitcoin trustless vaults deploy and mint vaultBTC tokens</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold flex-shrink-0">2</span>
+                    <span>Tokens bridged to EVM-compatible chains</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold flex-shrink-0">3</span>
+                    <span>AIVault accepts vaultBTC (no changes needed)</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold flex-shrink-0">4</span>
+                    <span>AI adapts to Bitcoin-specific market data</span>
+                  </li>
             </ol>
-
-            <p class="text-gray-700 dark:text-gray-300 mt-4">
-              <strong>Key Design Decision:</strong> By using a standard ERC20 interface for vaultBTC, the system remains chain-agnostic 
-              and can work with any Bitcoin trustless vault implementation that mints ERC20-compatible tokens.
-            </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- Team & Contact -->
-        <section class="mb-8">
-          <h2 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-            5. Team & Contact Information
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              <strong>Project:</strong> Bitcoin Vault AI<br>
-              <strong>Hackathon:</strong> AWS Global Vibe Hackathon 2025<br>
-              <strong>Track:</strong> AI-Enhanced Finance & Risk Track
-            </p>
-            <p class="text-gray-700 dark:text-gray-300 mb-4">
-              <strong>Repository:</strong> <a href="https://github.com/yourusername/bitcoin-vault-ai" class="text-emerald-400 hover:text-emerald-300" target="_blank">GitHub Repository</a><br>
-              <strong>Demo:</strong> <a href="https://your-demo-url.com" class="text-emerald-400 hover:text-emerald-300" target="_blank">Live Demo</a><br>
-              <strong>License:</strong> MIT
-            </p>
-            <p class="text-gray-700 dark:text-gray-300">
-              <em>Note: Please update with your actual team information, contact details, and repository links.</em>
-            </p>
+        <!-- Section 5: Team -->
+        <section class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-900 border border-emerald-500/20 p-8 transition-all duration-300 hover:border-emerald-500/30">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/30">
+                <span class="text-lg font-bold text-emerald-400">5</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white">Team & Contact</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Project</p>
+                <p class="text-sm font-semibold text-white">Bitcoin Vault AI</p>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Hackathon</p>
+                <p class="text-sm font-semibold text-white">AWS Global Vibe 2025</p>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <p class="text-xs text-slate-500 mb-1">Track</p>
+                <p class="text-sm font-semibold text-white">AI-Enhanced Finance</p>
+              </div>
+            </div>
           </div>
         </section>
+      </div>
 
         <!-- Footer -->
-        <div class="text-center pt-8 border-t border-gray-200 dark:border-gray-700">
-          <p class="text-gray-500 dark:text-gray-400 text-sm">
+      <div class="text-center mt-12 pt-8 border-t border-slate-800">
+        <p class="text-slate-500 text-sm">
             Built for AWS Global Vibe Hackathon 2025 • AI-Enhanced Finance & Risk Track
           </p>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Set page metadata
 useHead({
   title: 'Whitepaper - Bitcoin Vault AI',
   meta: [
@@ -211,4 +258,3 @@ useHead({
   ]
 })
 </script>
-
