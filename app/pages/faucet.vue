@@ -89,7 +89,7 @@
                 <span class="text-sm text-gray-600 dark:text-gray-400">Remaining Lifetime:</span>
                 <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ faucetInfo.remainingLifetime }} vaultBTC</span>
               </div>
-              <div v-if="faucetInfo.cooldownRemaining > 0" class="flex items-center justify-between pt-2 border-t border-emerald-200 dark:border-emerald-800">
+              <div v-if="faucetInfo.cooldownRemaining >= 0.1" class="flex items-center justify-between pt-2 border-t border-emerald-200 dark:border-emerald-800">
                 <span class="text-sm text-gray-600 dark:text-gray-400">Cooldown:</span>
                 <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">{{ formatCooldown(faucetInfo.cooldownRemaining) }}</span>
               </div>
@@ -103,7 +103,7 @@
               size="lg"
             >
               <Icon name="mdi:water" class="mr-2" />
-              {{ loading ? 'Minting...' : faucetInfo.cooldownRemaining > 0 ? 'Cooldown Active' : 'Request vaultBTC' }}
+              {{ loading ? 'Minting...' : (faucetInfo.cooldownRemaining >= 0.1 ? 'Cooldown Active' : 'Request vaultBTC') }}
             </UiButton>
 
             <p v-if="!isConnected" class="text-sm text-center text-gray-500 dark:text-gray-400">
@@ -197,18 +197,24 @@ const canMint = computed(() => {
   if (amountNum > 1000) return false // Max per request
   if (amountNum > parseFloat(faucetInfo.value.remainingDaily)) return false
   if (amountNum > parseFloat(faucetInfo.value.remainingLifetime)) return false
-  if (faucetInfo.value.cooldownRemaining > 0) return false
+  // Use same threshold as formatCooldown (0.1 seconds) to determine if cooldown is active
+  if (faucetInfo.value.cooldownRemaining >= 0.1) return false
     
   return true
 })
 
 const formatCooldown = (seconds: number): string => {
+  // Handle very small numbers (essentially 0) or invalid values
+  if (!seconds || seconds < 0.1 || isNaN(seconds) || !isFinite(seconds)) {
+    return 'Ready'
+  }
+  
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
+  const secs = Math.floor(seconds % 60)
   
   if (hours > 0) {
-    return `${hours}h ${minutes}m`
+    return `${hours}h ${minutes}m ${secs}s`
   } else if (minutes > 0) {
     return `${minutes}m ${secs}s`
   } else {

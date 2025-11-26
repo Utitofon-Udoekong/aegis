@@ -4,7 +4,7 @@ import { VaultBTCABI } from '~~/config/abi/vault-btc'
 import { formatUnits } from 'viem'
 import { useAppKitAccount } from "@reown/appkit/vue";
 import { wagmiAdapter } from '~~/config/appkit';
-import { readContract, writeContract, simulateContract, waitForTransactionReceipt } from '@wagmi/core'
+import { readContract, writeContract, waitForTransactionReceipt } from '@wagmi/core'
 import type { Address } from 'viem'
 
 export const useVault = () => {
@@ -45,13 +45,12 @@ export const useVault = () => {
       throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
     }
 
-    const {result} = await simulateContract(wagmiAdapter.wagmiConfig, {
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
       address: vaultBtcAddress as Address,
       abi: VaultBTCABI,
       functionName: 'approve',
       args: [vaultAddress as Address, amount],
     })
-    const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
     return hash
   }
   
@@ -93,13 +92,12 @@ export const useVault = () => {
     }
     
     // Then deposit
-    const {result} = await simulateContract(wagmiAdapter.wagmiConfig, {
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
       address: vaultAddress as Address,
       abi: AIVaultABI,
       functionName: 'deposit',
       args: [amount],
     })
-    const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
     const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
@@ -111,13 +109,12 @@ export const useVault = () => {
       throw new Error('VAULT_CONTRACT_ADDRESS is not configured')
     }
 
-    const {result} = await simulateContract(wagmiAdapter.wagmiConfig, {
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
       address: vaultAddress as Address,
       abi: AIVaultABI,
       functionName: 'withdraw',
       args: [amount],
     })
-    const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
     const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
@@ -194,13 +191,12 @@ export const useVault = () => {
       throw new Error('Wallet not connected')
     }
 
-    const {result} = await simulateContract(wagmiAdapter.wagmiConfig, {
+    const hash = await writeContract(wagmiAdapter.wagmiConfig, {
       address: vaultBtcAddress as Address,
       abi: VaultBTCABI,
       functionName: 'mint',
       args: [accountData.value.address as Address, amount],
     })
-    const hash = await writeContract(wagmiAdapter.wagmiConfig, result)
     const receipt = await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, {hash})
     return receipt.transactionHash
   }
@@ -241,11 +237,13 @@ export const useVault = () => {
       console.log("remainingLifetime", remainingLifetime)
       console.log("cooldownRemaining", cooldownRemaining)
       console.log("canMint", Number(cooldownRemaining) === 0 && Number(remainingDaily) > 0 && Number(remainingLifetime) > 0)
+      const cooldownSeconds = Number(formatUnits(cooldownRemaining as bigint, 18))
       return {
         remainingDaily: formatUnits(remainingDaily as bigint, 18),
         remainingLifetime: formatUnits(remainingLifetime as bigint, 18),
-        cooldownRemaining: Number(formatUnits(cooldownRemaining as bigint, 18)),
-        canMint: Number(cooldownRemaining) === 0 && Number(remainingDaily) > 0 && Number(remainingLifetime) > 0,
+        cooldownRemaining: cooldownSeconds,
+        // Use same threshold (0.1 seconds) as formatCooldown to determine if cooldown is active
+        canMint: cooldownSeconds < 0.1 && Number(remainingDaily) > 0 && Number(remainingLifetime) > 0,
       }
     } catch (error) {
       console.error('Error fetching faucet info:', error)
