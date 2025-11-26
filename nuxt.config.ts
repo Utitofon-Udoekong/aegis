@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/icon',
     '@nuxt/image',
+    '@wagmi/vue/nuxt'
   ],
   app: {
     head: {
@@ -21,9 +22,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     ethereumRpcUrl: process.env.ETHEREUM_RPC_URL,
+    subgraphApiKey: process.env.SUBGRAPH_API_KEY,
     public: {
       vaultAddress: process.env.VAULT_CONTRACT_ADDRESS,
-      vaultBtcAddress: process.env.VAULTBTC_ADDRESS,
+      vaultBtcAddress: process.env.VAULT_BTC_ADDRESS,
       reownProjectId: process.env.REOWN_PROJECT_ID,
     },
   },
@@ -32,6 +34,12 @@ export default defineNuxtConfig({
     build: {
       target: 'es2020', // Support BigInt literals
     },
+    optimizeDeps: {
+      exclude: ['oxc-parser', '@oxc-parser/binding-darwin-arm64']
+    },
+    define: {
+      global: 'globalThis'
+    }
   },
   nitro: {
     esbuild: {
@@ -39,5 +47,15 @@ export default defineNuxtConfig({
         target: 'es2020', // Support BigInt literals
       },
     },
+    experimental: {
+      wasm: true
+    },
+    // Exclude native bindings from bundling
+    externals: {
+      inline: ['oxc-parser']
+    }
   },
+  build: {
+    transpile: []
+  }
 })

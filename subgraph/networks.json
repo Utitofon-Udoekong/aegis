@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "AIVault": {
+      "address": "0xa81278c87eb00CE20Ab4059D02516e11601A5923",
+      "startBlock": 0
+    }
+  }
+}

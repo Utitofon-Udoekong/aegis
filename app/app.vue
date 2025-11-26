@@ -1,33 +1,21 @@
 <script setup lang="ts">
 import { createAppKit } from '@reown/appkit/vue'
-import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { sepolia } from '@reown/appkit/networks'
 
-const config = useRuntimeConfig()
-const projectId = config.public.reownProjectId as string
+import { networks, projectId, wagmiAdapter } from '~~/config/appkit'
 
-// Initialize AppKit (only on client side)
-if (process.client && projectId) {
-  const metadata = {
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks,
+  projectId,
+  themeMode: 'light',
+
+  metadata: {
     name: 'Bitcoin Vault AI',
-    description: 'AI-optimized Bitcoin DeFi vaults',
-    url: window.location.origin,
-    icons: [`${window.location.origin}/icon.png`]
+    description: 'Bitcoin Vault AI',
+    url: 'https://reown.com/appkit',
+    icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
   }
-
-  createAppKit({
-    adapters: [new EthersAdapter()],
-    networks: [sepolia],
-    defaultNetwork: sepolia,
-    metadata,
-    projectId,
-    features: {
-      analytics: true,
-      email: true,
-      socials: ['google', 'github'],
-    }
-  })
-}
+})
 </script>
 
 <template>

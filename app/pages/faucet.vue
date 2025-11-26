@@ -161,8 +161,11 @@
 
 <script setup lang="ts">
 import { useVaultStore } from '~~/stores/vault'
+import { useAppKitAccount } from "@reown/appkit/vue";
 
-const { isConnected, address } = useWeb3()
+const accountData = useAppKitAccount();
+const isConnected = computed(() => accountData.value?.isConnected)
+const address = computed(() => accountData.value?.address)
 const { mintVaultBTC, getVaultBTCBalance, getFaucetInfo } = useVault()
 const vaultStore = useVaultStore()
 
@@ -274,11 +277,11 @@ const handleMint = async () => {
 // Load balance and faucet info when wallet connects
 watch([isConnected, address], async ([connected, addr]) => {
   if (connected && addr) {
-    vaultBTCBalance.value = await getVaultBTCBalance(addr)
-    faucetInfo.value = await getFaucetInfo(addr)
     console.log("faucetInfo", faucetInfo.value)
     console.log("connected", connected)
     console.log("addr", addr)
+    vaultBTCBalance.value = await getVaultBTCBalance(addr)
+    faucetInfo.value = await getFaucetInfo(addr)
   }
 }, { immediate: true })
 

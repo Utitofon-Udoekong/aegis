@@ -24,6 +24,7 @@
     "@reown/appkit": "^1.8.14",
     "@reown/appkit-adapter-wagmi": "^1.8.14",
     "@tanstack/vue-query": "^5.91.4",
+    "@vue/devtools-api": "^8.0.5",
     "@vueuse/nuxt": "14.0.0",
     "@wagmi/core": "^3.0.0",
     "@wagmi/vue": "^0.4.1",
