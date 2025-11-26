@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createAppKit } from '@reown/appkit/vue'
-
+import { useAppKitTheme } from "@reown/appkit/vue";
 import { networks, projectId, wagmiAdapter } from '~~/config/appkit'
 
 createAppKit({
@@ -16,6 +16,9 @@ createAppKit({
     icons: ['https://avatars.githubusercontent.com/u/179229932?s=200&v=4']
   }
 })
+
+const { setThemeMode } = useAppKitTheme()
+setThemeMode("dark");
 </script>
 
 <template>
